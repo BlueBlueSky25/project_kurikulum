@@ -3,227 +3,475 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan Peminjaman Alat - {{ date('d/m/Y', strtotime($tanggal)) }}</title>
+    <title>Laporan Peminjaman Alat — {{ date('d/m/Y', strtotime($tanggal)) }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         @media print {
-            @page {
-                margin: 1.5cm;
-            }
-            body {
-                margin: 0;
-                padding: 0;
-            }
-            .no-print {
-                display: none;
-            }
+            @page { margin: 1.8cm 2cm; }
+            body { margin: 0; padding: 0; }
+            .no-print { display: none !important; }
+            .page-break { page-break-before: always; }
+            tr { page-break-inside: avoid; }
         }
-        
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        :root {
+            --espresso: #1c1917;
+            --ink:      #1a1714;
+            --dim:      #4a4540;
+            --label:    #6e665e;
+            --rule:     #c8bfb0;
+            --ghost:    #a89f94;
+            --paper:    #fffdf9;
+            --cream:    #f5f0e8;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
+            font-family: 'Montserrat', sans-serif;
+            background: var(--paper);
+            color: var(--ink);
+            padding: 40px;
             max-width: 210mm;
             margin: 0 auto;
         }
-        
+
+        /* ── PRINT BUTTON ── */
+        .print-btn {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 22px;
+            background: var(--espresso);
+            color: var(--paper);
+            border: none;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.58rem;
+            font-weight: 600;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            transition: background 0.2s;
+        }
+        .print-btn:hover { background: var(--ink); }
+
+        /* ── HEADER ── */
         .header {
-            text-align: center;
-            border-bottom: 3px solid #333;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--rule);
+            margin-bottom: 28px;
         }
-        
-        .header h1 {
-            margin: 0 0 5px 0;
-            font-size: 22px;
+        .header-brand {
+            display: flex;
+            flex-direction: column;
         }
-        
-        .header h2 {
+        .header-rule {
+            width: 36px;
+            height: 1px;
+            background: var(--rule);
+            margin-bottom: 10px;
+        }
+        .header-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.9rem;
+            font-weight: 400;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin: 0 0 4px 0;
+            color: var(--ink);
+        }
+        .header-sub {
+            font-size: 0.52rem;
+            font-weight: 600;
+            letter-spacing: 0.38em;
+            text-transform: uppercase;
+            color: var(--label);
             margin: 0;
-            font-size: 18px;
-            font-weight: normal;
         }
-        
-        .header p {
-            margin: 5px 0;
-            color: #666;
-            font-size: 14px;
+        .header-date {
+            text-align: right;
         }
-        
-        .info-box {
-            background: #f5f5f5;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
+        .header-date .date-label {
+            font-size: 0.5rem;
+            font-weight: 600;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--label);
+            display: block;
+            margin-bottom: 4px;
         }
-        
-        .info-box table {
-            width: 100%;
+        .header-date .date-value {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.1rem;
+            font-weight: 400;
+            color: var(--ink);
         }
-        
-        .info-box td {
-            padding: 5px 0;
-            font-size: 14px;
+
+        /* ── META INFO ── */
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0;
+            border: 1px solid var(--rule);
+            margin-bottom: 28px;
         }
-        
+        .meta-item {
+            padding: 14px 18px;
+            border-right: 1px solid var(--rule);
+        }
+        .meta-item:last-child { border-right: none; }
+        .meta-label {
+            font-size: 0.48rem;
+            font-weight: 600;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--label);
+            display: block;
+            margin-bottom: 5px;
+        }
+        .meta-value {
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: var(--ink);
+        }
+
+        /* ── SUMMARY ── */
         .summary {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
+            gap: 0;
+            border: 1px solid var(--rule);
+            margin-bottom: 36px;
+            background: var(--cream);
         }
-        
-        .summary-box {
-            border: 2px solid #ddd;
-            padding: 15px;
-            text-align: center;
-            border-radius: 5px;
+        .summary-item {
+            padding: 22px 20px;
+            border-right: 1px solid var(--rule);
+            position: relative;
         }
-        
-        .summary-box.blue { border-color: #2563eb; }
-        .summary-box.green { border-color: #16a34a; }
-        .summary-box.red { border-color: #dc2626; }
-        
-        .summary-box .label {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 8px;
+        .summary-item:last-child { border-right: none; }
+        .summary-item::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 3px; height: 100%;
+            background: var(--espresso);
+        }
+        .summary-label {
+            font-size: 0.48rem;
+            font-weight: 600;
+            letter-spacing: 0.3em;
             text-transform: uppercase;
+            color: var(--label);
+            display: block;
+            margin-bottom: 8px;
         }
-        
-        .summary-box .value {
-            font-size: 32px;
-            font-weight: bold;
+        .summary-value {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.6rem;
+            font-weight: 300;
+            color: var(--ink);
+            line-height: 1;
         }
-        
-        .summary-box.blue .value { color: #2563eb; }
-        .summary-box.green .value { color: #16a34a; }
-        .summary-box.red .value { color: #dc2626; }
-        
-        .section {
-            margin-bottom: 30px;
+        .summary-value.denda {
+            font-size: 1.4rem;
         }
-        
-        .section h3 {
-            background: #333;
-            color: white;
-            padding: 10px 15px;
-            margin-bottom: 15px;
-            font-size: 16px;
-            border-radius: 3px;
+
+        /* ── SECTION HEADING ── */
+        .section { margin-bottom: 32px; }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
         }
-        
+        .section-bar {
+            width: 3px;
+            height: 18px;
+            background: var(--espresso);
+            flex-shrink: 0;
+        }
+        .section-title {
+            font-size: 0.56rem;
+            font-weight: 600;
+            letter-spacing: 0.32em;
+            text-transform: uppercase;
+            color: var(--ink);
+            margin: 0;
+        }
+
+        /* ── DATA TABLE ── */
         table.data-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            border: 1px solid var(--rule);
         }
-        
-        table.data-table th,
-        table.data-table td {
-            border: 1px solid #ddd;
-            padding: 10px 8px;
-            text-align: left;
-            font-size: 12px;
+        table.data-table thead tr {
+            background: var(--cream);
+            border-bottom: 1px solid var(--rule);
         }
-        
         table.data-table th {
-            background-color: #f0f0f0;
-            font-weight: bold;
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 0.48rem;
+            font-weight: 600;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--label);
         }
-        
-        table.data-table tr:nth-child(even) {
-            background-color: #f9f9f9;
+        table.data-table tbody tr {
+            border-bottom: 1px solid var(--rule);
         }
-        
-        .text-center {
+        table.data-table tbody tr:last-child { border-bottom: none; }
+        table.data-table td {
+            padding: 10px 14px;
+            font-size: 0.75rem;
+            color: var(--ink);
+        }
+        .td-label { color: var(--label); }
+        .td-bold  { font-weight: 600; }
+
+        /* ── BADGES ── */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            font-size: 0.45rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            border: 1px solid var(--rule);
+            background: var(--cream);
+            color: var(--label);
+        }
+        .badge-good {
+            border-color: rgba(28,25,23,0.25);
+            background: rgba(28,25,23,0.05);
+            color: var(--espresso);
+        }
+        .badge-warn {
+            border-color: rgba(74,69,64,0.25);
+            background: rgba(74,69,64,0.05);
+            color: var(--dim);
+        }
+
+        /* ── EMPTY STATE ── */
+        .empty-row td {
+            padding: 28px 14px;
             text-align: center;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1rem;
+            color: var(--label);
+            font-style: italic;
         }
-        
+
+        /* ── FOOTER / SIGNATURE ── */
         .footer {
-            margin-top: 50px;
+            margin-top: 60px;
             page-break-inside: avoid;
         }
-        
-        .footer-grid {
+        .footer-divider {
+            height: 1px;
+            background: var(--rule);
+            margin-bottom: 40px;
+        }
+        .signature-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 50px;
+            gap: 60px;
         }
-        
-        .signature {
-            text-align: center;
+        .signature { text-align: center; }
+        .signature-role {
+            font-size: 0.52rem;
+            font-weight: 600;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--label);
+            margin-bottom: 70px;
         }
-        
-        .signature .role {
-            margin-bottom: 60px;
-            font-weight: bold;
+        .signature-line {
+            height: 1px;
+            background: var(--dim);
+            margin-bottom: 8px;
         }
-        
-        .signature .name {
-            text-decoration: underline;
-            font-weight: bold;
-        }
-        
-        .print-btn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 12px 24px;
-            background: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        
-        .print-btn:hover {
-            background: #1d4ed8;
+        .signature-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1rem;
+            font-weight: 400;
+            color: var(--ink);
         }
     </style>
 </head>
 <body>
+
+    {{-- ── PRINT BUTTON ── --}}
     <button onclick="window.print()" class="print-btn no-print">
-        🖨️ Cetak Laporan
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+        Cetak Laporan
     </button>
 
+    {{-- ── HEADER ── --}}
     <div class="header">
-        <h1>SISTEM PEMINJAMAN ALAT</h1>
-        <h2>LAPORAN PEMINJAMAN HARIAN</h2>
-        <p>Tanggal: {{ date('d F Y', strtotime($tanggal)) }}</p>
+        <div class="header-brand">
+            <div class="header-rule"></div>
+            <h1 class="header-title">Sistema</h1>
+            <p class="header-sub">Laporan Peminjaman Harian</p>
+        </div>
+        <div class="header-date">
+            <span class="date-label">Tanggal Laporan</span>
+            <span class="date-value">{{ date('d F Y', strtotime($tanggal)) }}</span>
+        </div>
     </div>
 
-    <div class="info-box">
-        <table>
-            <tr>
-                <td width="150"><strong>Tanggal Laporan</strong></td>
-                <td>: {{ date('d F Y', strtotime($tanggal)) }}</td>
-            </tr>
-            <tr>
-                <td><strong>Waktu Cetak</strong></td>
-                <td>: {{ date('d F Y, H:i') }} WIB</td>
-            </tr>
-            <tr>
-                <td><strong>Dicetak oleh</strong></td>
-                <td>: {{ session('username', 'Administrator') }}</td>
-            </tr>
+    {{-- ── META INFO ── --}}
+    <div class="meta-grid">
+        <div class="meta-item">
+            <span class="meta-label">Tanggal Laporan</span>
+            <span class="meta-value">{{ date('d F Y', strtotime($tanggal)) }}</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Waktu Cetak</span>
+            <span class="meta-value">{{ date('d F Y, H:i') }} WIB</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Dicetak Oleh</span>
+            <span class="meta-value">{{ session('username', 'Administrator') }}</span>
+        </div>
+    </div>
+
+    {{-- ── SUMMARY ── --}}
+    <div class="summary">
+        <div class="summary-item">
+            <span class="summary-label">Total Peminjaman</span>
+            <span class="summary-value">{{ $totalPeminjamanHariIni }}</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">Total Pengembalian</span>
+            <span class="summary-value">{{ $totalPengembalianHariIni }}</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">Total Denda</span>
+            <span class="summary-value denda">Rp {{ number_format($totalDendaHariIni, 0, ',', '.') }}</span>
+        </div>
+    </div>
+
+    {{-- ── DATA PEMINJAMAN ── --}}
+    <div class="section">
+        <div class="section-header">
+            <div class="section-bar"></div>
+            <h3 class="section-title">Data Peminjaman</h3>
+        </div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Waktu</th>
+                    <th>Peminjam</th>
+                    <th>Alat</th>
+                    <th>Jumlah</th>
+                    <th>Jatuh Tempo</th>
+                    <th>Petugas</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($peminjamanHariIni as $item)
+                    <tr>
+                        <td class="td-bold">{{ date('H:i', strtotime($item['tgl_pinjam'])) }}</td>
+                        <td>{{ $item['peminjam'] }}</td>
+                        <td class="td-label">{{ $item['alat'] }}</td>
+                        <td>{{ $item['jumlah'] }}</td>
+                        <td class="td-label">{{ date('d/m/Y', strtotime($item['jatuh_tempo'])) }}</td>
+                        <td class="td-label">{{ session('username', 'Administrator') }}</td>
+                    </tr>
+                @empty
+                    <tr class="empty-row">
+                        <td colspan="6">Tidak ada data peminjaman pada tanggal ini.</td>
+                    </tr>
+                @endforelse
+            </tbody>
         </table>
     </div>
 
-    <div class="summary">
-        <div class="summary-box blue">
-            <div class="label">Total Peminjaman</div>
-            <div class="value">{{ $totalPeminjamanHariIni }}</div>
+    {{-- ── DATA PENGEMBALIAN ── --}}
+    <div class="section">
+        <div class="section-header">
+            <div class="section-bar"></div>
+            <h3 class="section-title">Data Pengembalian</h3>
         </div>
-        <div class="summary-box green">
-            <div class="label">Total Pengembalian</div>
-            <div class="value">{{ $totalPengembalianHariIni }}</div>
-        </div>
-        <div class="summary-box red">
-            <div class="label">Total Denda</div>
-            <div class="value" style="font-size: 24px;">Rp {{ number_format($totalDendaHariIni, 0, ',', '.') }}</div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Waktu</th>
+                    <th>Peminjam</th>
+                    <th>Alat</th>
+                    <th>Kondisi</th>
+                    <th>Keterlambatan</th>
+                    <th>Denda</th>
+                    <th>Petugas</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($pengembalianHariIni as $item)
+                    <tr>
+                        <td class="td-bold">{{ date('H:i', strtotime($item['tgl_kembali'])) }}</td>
+                        <td>{{ $item['peminjam'] }}</td>
+                        <td class="td-label">{{ $item['alat'] }}</td>
+                        <td>
+                            @if($item['kondisi'] == 'Baik')
+                                <span class="badge badge-good">Baik</span>
+                            @elseif($item['kondisi'] == 'Rusak Ringan')
+                                <span class="badge badge-warn">Rusak Ringan</span>
+                            @else
+                                <span class="badge">{{ $item['kondisi'] }}</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($item['terlambat'] > 0)
+                                <span style="font-weight:600; color:var(--espresso)">{{ $item['terlambat'] }} hari</span>
+                            @else
+                                <span class="td-label">Tepat waktu</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($item['denda'] > 0)
+                                <span style="font-weight:600; color:var(--espresso)">Rp {{ number_format($item['denda'], 0, ',', '.') }}</span>
+                            @else
+                                <span class="td-label">—</span>
+                            @endif
+                        </td>
+                        <td class="td-label">{{ session('username', 'Administrator') }}</td>
+                    </tr>
+                @empty
+                    <tr class="empty-row">
+                        <td colspan="7">Tidak ada data pengembalian pada tanggal ini.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    {{-- ── FOOTER / SIGNATURE ── --}}
+    <div class="footer">
+        <div class="footer-divider"></div>
+        <div class="signature-grid">
+            <div class="signature">
+                <p class="signature-role">Petugas</p>
+                <div class="signature-line"></div>
+                <p class="signature-name">{{ session('username', 'Administrator') }}</p>
+            </div>
+            <div class="signature">
+                <p class="signature-role">Mengetahui</p>
+                <div class="signature-line"></div>
+                <p class="signature-name">&nbsp;</p>
+            </div>
         </div>
     </div>
 
-    <div>
+</body>
+</html>
