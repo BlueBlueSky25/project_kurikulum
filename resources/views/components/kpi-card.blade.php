@@ -1,34 +1,47 @@
-@props(['title', 'value', 'icon', 'color' => 'blue'])
+@props(['title', 'value', 'icon', 'color' => 'warm'])
 
 @php
-    $colors = [
-        'blue' => 'bg-blue-100',
-        'green' => 'bg-green-100',
-        'yellow' => 'bg-yellow-100',
-        'purple' => 'bg-purple-100',
-        'red' => 'bg-red-100',
+    $palette = [
+        'warm'   => ['bg' => 'bg-espresso',    'text' => 'text-paper'],
+        'cream'  => ['bg' => 'bg-cream',        'text' => 'text-ink'],
+        'sand'   => ['bg' => 'bg-sand',         'text' => 'text-ink'],
+        'muted'  => ['bg' => 'bg-rule',         'text' => 'text-ink'],
     ];
-    
-    $iconColors = [
-        'blue' => 'text-blue-500',
-        'green' => 'text-green-500',
-        'yellow' => 'text-yellow-500',
-        'purple' => 'text-purple-500',
-        'red' => 'text-red-500',
+
+    // Map warna lama ke palette baru supaya dashboard.blade tidak perlu diubah
+    $colorMap = [
+        'blue'   => 'warm',
+        'green'  => 'cream',
+        'yellow' => 'sand',
+        'purple' => 'muted',
+        'red'    => 'warm',
     ];
-    
-    $bgColor = $colors[$color] ?? $colors['blue'];
-    $iconColor = $iconColors[$color] ?? $iconColors['blue'];
+
+    $resolved  = $colorMap[$color] ?? $color;
+    $bg        = $palette[$resolved]['bg']   ?? 'bg-espresso';
+    $iconText  = $palette[$resolved]['text'] ?? 'text-paper';
 @endphp
 
-<div class="bg-white rounded-lg shadow p-6">
-    <div class="flex items-center justify-between">
-        <div>
-            <p class="text-sm text-gray-600 mb-1">{{ $title }}</p>
-            <p class="text-3xl font-bold text-gray-800">{{ $value }}</p>
+<div class="bg-paper border border-rule p-6 group hover:border-espresso/30 transition-colors duration-200">
+    <div class="flex items-start justify-between gap-4">
+
+        {{-- Value & Title --}}
+        <div class="flex-1 min-w-0">
+            <p class="font-sans text-[0.58rem] font-semibold tracking-[0.25em] uppercase text-label mb-2">
+                {{ $title }}
+            </p>
+            <p class="font-serif text-[2rem] font-normal leading-none text-ink">
+                {{ $value }}
+            </p>
         </div>
-        <div class="w-16 h-16 {{ $bgColor }} rounded-full flex items-center justify-center">
-            <i class="fas {{ $icon }} text-2xl {{ $iconColor }}"></i>
+
+        {{-- Icon Box --}}
+        <div class="w-12 h-12 {{ $bg }} flex items-center justify-center flex-shrink-0">
+            <i class="fas {{ $icon }} text-base {{ $iconText }}"></i>
         </div>
+
     </div>
+
+    {{-- Bottom accent line --}}
+    <div class="mt-5 h-px w-0 bg-espresso/20 group-hover:w-full transition-all duration-500"></div>
 </div>
