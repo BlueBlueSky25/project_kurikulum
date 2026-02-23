@@ -3,77 +3,134 @@
 @section('title', 'Log Aktivitas')
 
 @section('content')
-    <h2 class="text-2xl font-bold text-gray-800 mb-6">Log Aktivitas</h2>
 
-    <!-- Table -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waktu</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Level</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deskripsi</th>
+    {{-- ══ PAGE HEADER ══ --}}
+    <div class="mb-8">
+        <p class="font-sans text-[0.58rem] font-semibold tracking-[0.35em] uppercase text-label mb-1">
+            Sistem
+        </p>
+        <h2 class="font-serif text-ink text-3xl font-normal leading-none">
+            Log Aktivitas
+        </h2>
+        <div class="mt-3 h-px w-10 bg-rule"></div>
+    </div>
+
+    {{-- ══ TABLE ══ --}}
+    <div class="bg-paper border border-rule overflow-hidden">
+        <table class="min-w-full">
+            <thead>
+                <tr class="border-b border-rule bg-cream">
+                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">
+                        Waktu
+                    </th>
+                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">
+                        User
+                    </th>
+                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">
+                        Username
+                    </th>
+                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">
+                        Level
+                    </th>
+                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">
+                        Aksi
+                    </th>
+                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">
+                        Deskripsi
+                    </th>
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody class="divide-y divide-rule">
                 @forelse($logs as $log)
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {{ optional($log->timestamp)->format('d-m-Y H:i:s') ?? '-' }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                            {{ optional($log->user)->nama_lengkap ?? 'User #' . ($log->user_id ?? 'N/A') }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {{ optional($log->user)->username ?? '-' }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            @php
-                                $level = optional($log->user)->level;
-                                $badgeClass = match(strtolower($level ?? '')) {
-                                    'admin' => 'bg-red-100 text-red-800',
-                                    'petugas' => 'bg-blue-100 text-blue-800',
-                                    'peminjam' => 'bg-green-100 text-green-800',
-                                    default => 'bg-gray-100 text-gray-800',
-                                };
-                            @endphp
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $badgeClass }}">
-                                @if($level)
-                                    {{ match(strtolower($level)) {
-                                        'admin' => 'Admin',
-                                        'petugas' => 'Petugas',
-                                        'peminjam' => 'Peminjam',
-                                        default => ucfirst($level),
-                                    } }}
-                                @else
-                                    -
-                                @endif
+                    <tr class="hover:bg-cream/40 transition-colors duration-100">
+
+                        {{-- Waktu --}}
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <span class="font-sans text-[0.75rem] text-label tracking-wide">
+                                {{ optional($log->timestamp)->format('d-m-Y') ?? '-' }}
+                            </span>
+                            <span class="block font-sans text-[0.65rem] text-ghost tracking-wide">
+                                {{ optional($log->timestamp)->format('H:i:s') ?? '' }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {{ $log->aktivitas ?? '-' }}
+
+                        {{-- Nama User --}}
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <div class="flex items-center gap-3">
+                                <div class="w-7 h-7 bg-espresso flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-user text-paper text-[0.55rem]"></i>
+                                </div>
+                                <span class="font-sans text-[0.82rem] text-ink">
+                                    {{ optional($log->user)->nama_lengkap ?? 'User #' . ($log->user_id ?? 'N/A') }}
+                                </span>
+                            </div>
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-600">
-                            {{ $log->modul ?? '-' }}
+
+                        {{-- Username --}}
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <span class="font-sans text-[0.82rem] font-medium text-ink">
+                                {{ optional($log->user)->username ?? '-' }}
+                            </span>
                         </td>
+
+                        {{-- Level Badge --}}
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            @php $level = optional($log->user)->level; @endphp
+                            @if(strtolower($level ?? '') === 'admin')
+                                <span class="px-2.5 py-1 border border-espresso/30 bg-espresso/5 font-sans text-[0.52rem] font-semibold tracking-[0.15em] uppercase text-espresso">
+                                    Admin
+                                </span>
+                            @elseif(strtolower($level ?? '') === 'petugas')
+                                <span class="px-2.5 py-1 border border-dim/30 bg-dim/5 font-sans text-[0.52rem] font-semibold tracking-[0.15em] uppercase text-dim">
+                                    Petugas
+                                </span>
+                            @elseif(strtolower($level ?? '') === 'peminjam')
+                                <span class="px-2.5 py-1 border border-rule bg-cream font-sans text-[0.52rem] font-semibold tracking-[0.15em] uppercase text-label">
+                                    Peminjam
+                                </span>
+                            @else
+                                <span class="font-sans text-[0.75rem] text-ghost">—</span>
+                            @endif
+                        </td>
+
+                        {{-- Aksi --}}
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <span class="font-sans text-[0.82rem] text-ink">
+                                {{ $log->aktivitas ?? '-' }}
+                            </span>
+                        </td>
+
+                        {{-- Deskripsi --}}
+                        <td class="px-5 py-4">
+                            <span class="font-sans text-[0.78rem] leading-relaxed text-label">
+                                {{ $log->modul ?? '-' }}
+                            </span>
+                        </td>
+
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                            <i class="fas fa-book text-4xl text-gray-300 mb-2"></i>
-                            <p>Belum ada log aktivitas.</p>
+                        <td colspan="6" class="px-5 py-16 text-center">
+                            <div class="w-12 h-12 bg-cream border border-rule flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-book text-ghost text-base"></i>
+                            </div>
+                            <p class="font-serif text-ink text-lg font-normal mb-1">Belum ada log aktivitas</p>
+                            <p class="font-sans text-[0.7rem] text-label tracking-wide">
+                                Aktivitas sistem akan tercatat secara otomatis di sini.
+                            </p>
                         </td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
-        
-        <!-- Pagination -->
-        <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 sm:px-6">
-            {{ $logs->links() }}
-        </div>
+
+        {{-- ══ PAGINATION ══ --}}
+        @if($logs->hasPages())
+            <div class="bg-cream px-5 py-3 border-t border-rule">
+                {{ $logs->links() }}
+            </div>
+        @endif
+
     </div>
+
 @endsection
