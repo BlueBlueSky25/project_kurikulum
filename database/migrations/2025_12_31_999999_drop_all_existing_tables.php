@@ -11,10 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Nonaktifkan foreign key checks sementara
-        DB::statement('SET session_replication_role = replica;');
-
-        // Drop tabel-tabel (urutan: child dulu, baru parent)
+        // Drop tabel dengan CASCADE (otomatis handle foreign key dependencies)
         $tables = [
             'log_aktivitas',
             'pengembalian',
@@ -32,9 +29,6 @@ return new class extends Migration
         foreach ($tables as $table) {
             DB::statement("DROP TABLE IF EXISTS \"{$table}\" CASCADE");
         }
-
-        // Aktifkan kembali foreign key checks
-        DB::statement('SET session_replication_role = DEFAULT;');
 
         // Drop ENUM types
         DB::statement("DROP TYPE IF EXISTS user_level CASCADE");
