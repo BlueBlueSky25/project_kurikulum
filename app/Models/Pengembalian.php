@@ -17,22 +17,18 @@ class Pengembalian extends Model
     protected $fillable = [
         'peminjaman_id',
         'tanggal_kembali_aktual',
-        'kondisi_alat',
         'keterlambatan_hari',
         'tarif_denda_per_hari',
-        'denda_keterlambatan',     // ✅ NEW
-        'denda_barang',            // ✅ NEW
+        'denda_keterlambatan',
         'total_denda',
         'status_denda',
         'keterangan',
     ];
 
-    // ✅ NEW: Casting untuk tipe data
     protected $casts = [
         'tanggal_kembali_aktual' => 'date',
         'tarif_denda_per_hari' => 'decimal:2',
         'denda_keterlambatan' => 'decimal:2',
-        'denda_barang' => 'decimal:2',
         'total_denda' => 'decimal:2',
     ];
 
@@ -42,20 +38,19 @@ class Pengembalian extends Model
         return $this->belongsTo(Peminjaman::class, 'peminjaman_id', 'peminjaman_id');
     }
 
+    public function details()
+    {
+        return $this->hasMany(PengembalianDetail::class, 'pengembalian_id', 'pengembalian_id');
+    }
+
     public function getRouteKeyName()
     {
         return 'pengembalian_id';
     }
 
-    // ✅ NEW: Helper untuk format currency
     public function getDendaKeterlambatanFormatAttribute()
     {
         return 'Rp ' . number_format($this->denda_keterlambatan, 0, ',', '.');
-    }
-
-    public function getDendaBarangFormatAttribute()
-    {
-        return 'Rp ' . number_format($this->denda_barang, 0, ',', '.');
     }
 
     public function getTotalDendaFormatAttribute()

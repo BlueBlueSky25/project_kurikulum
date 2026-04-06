@@ -51,7 +51,7 @@
         </div>
     @endif
 
-    {{-- ✅ NEW: Summary Cards --}}
+    {{-- ✅ SUMMARY CARDS --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
 
         {{-- Total Denda --}}
@@ -124,9 +124,8 @@
                     <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Peminjam</th>
                     <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Alat</th>
                     <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Tgl. Kembali</th>
-                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Kondisi</th>
+                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Detail Kondisi</th>
                     <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Telat</th>
-                    {{-- ✅ NEW: Denda Breakdown --}}
                     <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Denda Keterlambatan</th>
                     <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Denda Barang</th>
                     <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Total Denda</th>
@@ -155,21 +154,25 @@
                             {{ $item->tanggal_kembali_aktual->format('d M Y') }}
                         </td>
 
-                        {{-- Kondisi --}}
+                        {{-- Detail Kondisi --}}
                         <td class="px-5 py-4 whitespace-nowrap">
-                            @if($item->kondisi_alat == 'baik')
-                                <span class="px-2.5 py-1 border border-ink/20 bg-ink/5 font-sans text-[0.52rem] font-semibold tracking-[0.15em] uppercase text-ink">
-                                    Baik
-                                </span>
-                            @elseif($item->kondisi_alat == 'rusak')
-                                <span class="px-2.5 py-1 border border-dim/20 bg-dim/5 font-sans text-[0.52rem] font-semibold tracking-[0.15em] uppercase text-dim">
-                                    ⚠️ Rusak
-                                </span>
-                            @else
-                                <span class="px-2.5 py-1 border border-espresso/20 bg-espresso/5 font-sans text-[0.52rem] font-semibold tracking-[0.15em] uppercase text-espresso">
-                                    ❌ Hilang
-                                </span>
-                            @endif
+                            <div class="flex flex-col gap-1.5">
+                                @foreach($item->details as $detail)
+                                    @if($detail->kondisi_alat == 'baik')
+                                        <span class="px-2.5 py-1 border border-ink/20 bg-ink/5 font-sans text-[0.52rem] font-semibold tracking-[0.15em] uppercase text-ink w-max">
+                                            ✓ Baik ({{ $detail->jumlah }})
+                                        </span>
+                                    @elseif($detail->kondisi_alat == 'rusak')
+                                        <span class="px-2.5 py-1 border border-dim/20 bg-dim/5 font-sans text-[0.52rem] font-semibold tracking-[0.15em] uppercase text-dim w-max">
+                                            ⚠️ Rusak ({{ $detail->jumlah }})
+                                        </span>
+                                    @else
+                                        <span class="px-2.5 py-1 border border-espresso/20 bg-espresso/5 font-sans text-[0.52rem] font-semibold tracking-[0.15em] uppercase text-espresso w-max">
+                                            ❌ Hilang ({{ $detail->jumlah }})
+                                        </span>
+                                    @endif
+                                @endforeach
+                            </div>
                         </td>
 
                         {{-- Keterlambatan --}}
@@ -185,7 +188,7 @@
                             @endif
                         </td>
 
-                        {{-- ✅ NEW: Denda Keterlambatan --}}
+                        {{-- Denda Keterlambatan --}}
                         <td class="px-5 py-4 whitespace-nowrap">
                             @if($item->denda_keterlambatan > 0)
                                 <span class="font-sans text-[0.75rem] font-semibold text-ink">
@@ -196,18 +199,21 @@
                             @endif
                         </td>
 
-                        {{-- ✅ NEW: Denda Barang --}}
+                        {{-- Denda Barang --}}
                         <td class="px-5 py-4 whitespace-nowrap">
-                            @if($item->denda_barang > 0)
+                            @php
+                                $totalDendaDetail = $item->details->sum('denda_barang');
+                            @endphp
+                            @if($totalDendaDetail > 0)
                                 <span class="font-sans text-[0.75rem] font-semibold text-espresso">
-                                    Rp {{ number_format($item->denda_barang, 0, ',', '.') }}
+                                    Rp {{ number_format($totalDendaDetail, 0, ',', '.') }}
                                 </span>
                             @else
                                 <span class="font-sans text-[0.75rem] text-ghost">-</span>
                             @endif
                         </td>
 
-                        {{-- ✅ NEW: Total Denda --}}
+                        {{-- Total Denda --}}
                         <td class="px-5 py-4 whitespace-nowrap">
                             <span class="font-sans text-[0.8rem] font-bold text-ink">
                                 Rp {{ number_format($item->total_denda, 0, ',', '.') }}
@@ -264,7 +270,7 @@
     {{-- ══ MODAL PROSES PENGEMBALIAN ══ --}}
     <div id="pengembalianModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4 py-8"
         style="background:rgba(26,23,20,0.55)">
-        <div class="relative w-full max-w-md bg-paper border border-rule shadow-2xl flex flex-col max-h-[90vh] animate-fade-up">
+        <div class="relative w-full max-w-2xl bg-paper border border-rule shadow-2xl flex flex-col max-h-[90vh] animate-fade-up">
 
             {{-- Modal Header --}}
             <div class="flex-shrink-0 flex items-end justify-between px-8 pt-7 pb-5 border-b border-rule">
@@ -306,7 +312,7 @@
                                         data-persen-rusak="{{ $pinjam->alat->persen_denda_rusak }}"
                                         data-jumlah="{{ $pinjam->jumlah }}">
                                         {{ $pinjam->user->username }} — {{ $pinjam->alat->nama_alat }}
-                                        ({{ $pinjam->tanggal_peminjaman->format('d/m/Y') }})
+                                        ({{ $pinjam->tanggal_peminjaman->format('d/m/Y') }}) × {{ $pinjam->jumlah }}
                                     </option>
                                 @endforeach
                             </select>
@@ -327,20 +333,24 @@
                         <p id="info_keterlambatan" class="font-sans text-[0.65rem] mt-1.5"></p>
                     </div>
 
-                    {{-- Kondisi Alat --}}
-                    <div>
+                    {{-- Input Kondisi Barang (Multi) --}}
+                    <div id="kondisiContainer" style="display: none;">
                         <label class="block font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-2.5">
-                            Kondisi Alat <span class="text-espresso">*</span>
+                            Detail Pengembalian Barang <span class="text-espresso">*</span>
                         </label>
-                        <div class="relative">
-                            <select name="kondisi_alat" required
-                                class="w-full appearance-none bg-cream border border-rule px-3 py-2.5 font-sans text-[0.8rem] text-ink outline-none focus:border-ink transition-colors duration-200 cursor-pointer">
-                                <option value="">Pilih Kondisi</option>
-                                <option value="baik">Baik</option>
-                                <option value="rusak">Rusak</option>
-                                <option value="hilang">Hilang</option>
-                            </select>
-                            <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-ghost text-[0.55rem] pointer-events-none"></i>
+                        <p class="font-sans text-[0.65rem] text-label mb-3">
+                            Masukkan jumlah barang untuk setiap kondisi. Total harus sama dengan <span id="jumlahTotal" class="font-bold">0</span> barang.
+                        </p>
+
+                        <div id="kondisiDetailsList" class="space-y-3">
+                            {{-- Items akan ditambahkan via JavaScript --}}
+                        </div>
+
+                        <div class="mt-3 p-3 bg-cream border border-rule rounded">
+                            <div class="flex justify-between items-center">
+                                <span class="font-sans text-[0.7rem] font-semibold text-label">Total Barang yang Diinput:</span>
+                                <span id="totalInputCount" class="font-sans text-[0.75rem] font-bold text-ink">0 / 0</span>
+                            </div>
                         </div>
                     </div>
 
@@ -349,11 +359,11 @@
                         <label class="block font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-2.5">
                             Keterangan
                         </label>
-                        <textarea name="keterangan" rows="3" placeholder="Catatan tambahan (opsional)"
+                        <textarea name="keterangan" rows="2" placeholder="Catatan tambahan (opsional)"
                             class="w-full bg-cream border border-rule px-3 py-2.5 font-sans text-[0.82rem] text-ink outline-none placeholder-ghost/60 focus:border-ink transition-colors duration-200 resize-none"></textarea>
                     </div>
 
-                    {{-- ✅ NEW: Breakdown Denda (Real-time Display) --}}
+                    {{-- Breakdown Denda (Real-time Display) --}}
                     <div id="dendaBreakdown" style="display: none;">
                         <div class="bg-cream border border-rule p-4 rounded">
                             <p class="font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-3">
@@ -377,11 +387,13 @@
                                 <div class="flex justify-between items-center mb-2 pb-2 border-b border-rule">
                                     <span class="font-sans text-[0.75rem] text-label">
                                         Denda Barang:
-                                        <span id="desc_barang" class="font-semibold text-ink">-</span>
                                     </span>
                                     <span id="denda_barang" class="font-sans text-[0.8rem] font-semibold text-dim">
                                         Rp 0
                                     </span>
+                                </div>
+                                <div id="dendaDetailList" class="mb-2 pb-2 border-b border-rule space-y-1">
+                                    {{-- Detail denda akan ditampilkan di sini --}}
                                 </div>
                             </div>
 
@@ -424,28 +436,97 @@
             document.getElementById('pengembalianModal').classList.add('hidden');
         }
 
-        // ✅ NEW: Real-time Denda Calculation
         const peminjamanSelect = document.getElementById('peminjaman_select');
         const tanggalKembali = document.getElementById('tanggal_kembali');
-        const kondisiSelect = document.querySelector('select[name="kondisi_alat"]');
+        const kondisiContainer = document.getElementById('kondisiContainer');
+        const kondisiDetailsList = document.getElementById('kondisiDetailsList');
         const dendaBreakdown = document.getElementById('dendaBreakdown');
         const infoPeminjaman = document.getElementById('info_peminjaman');
         const infoKeterlambatan = document.getElementById('info_keterlambatan');
 
+        let currentJumlahPinjam = 0;
+        let hargaAlat = 0;
+        let persenRusak = 0;
+
+        // Format Currency
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('id-ID').format(value);
+        }
+
+        // Generate Kondisi Input Fields
+        function generateKondisiFields() {
+            kondisiDetailsList.innerHTML = '';
+            const kondisiOptions = [
+                { value: 'baik', label: '✓ Baik', color: 'border-ink/20 bg-ink/5' },
+                { value: 'rusak', label: '⚠️ Rusak', color: 'border-dim/20 bg-dim/5' },
+                { value: 'hilang', label: '❌ Hilang', color: 'border-espresso/20 bg-espresso/5' }
+            ];
+
+            kondisiOptions.forEach((option) => {
+                const fieldId = `kondisi_${option.value}`;
+                const fieldHTML = `
+                    <div class="flex items-end gap-3">
+                        <div class="flex-1">
+                            <label class="block font-sans text-[0.65rem] font-semibold tracking-[0.2em] uppercase text-label mb-1.5">
+                                ${option.label}
+                            </label>
+                            <input type="number" 
+                                name="kondisi_details[${option.value}][jumlah]"
+                                id="${fieldId}"
+                                min="0" 
+                                max="${currentJumlahPinjam}"
+                                value="0"
+                                class="w-full bg-cream border border-rule px-3 py-2.5 font-sans text-[0.8rem] text-ink outline-none focus:border-ink transition-colors duration-200 kondisi-input"
+                                data-kondisi="${option.value}">
+                            <input type="hidden" name="kondisi_details[${option.value}][kondisi]" value="${option.value}">
+                        </div>
+                        <span class="font-sans text-[0.65rem] text-label whitespace-nowrap">
+                            dari {{ currentJumlahPinjam }}
+                        </span>
+                    </div>
+                `;
+                kondisiDetailsList.insertAdjacentHTML('beforeend', fieldHTML);
+            });
+
+            // Attach event listeners
+            document.querySelectorAll('.kondisi-input').forEach(input => {
+                input.addEventListener('change', hitungDenda);
+                input.addEventListener('input', updateTotalInputCount);
+            });
+        }
+
+        // Update Total Input Count
+        function updateTotalInputCount() {
+            let total = 0;
+            document.querySelectorAll('.kondisi-input').forEach(input => {
+                total += parseInt(input.value) || 0;
+            });
+            const totalSpan = document.getElementById('totalInputCount');
+            totalSpan.textContent = `${total} / ${currentJumlahPinjam}`;
+
+            // Highlight if doesn't match
+            if (total !== currentJumlahPinjam) {
+                totalSpan.classList.add('text-espresso');
+            } else {
+                totalSpan.classList.remove('text-espresso');
+            }
+
+            hitungDenda();
+        }
+
+        // Hitung Denda
         function hitungDenda() {
             const selected = peminjamanSelect.options[peminjamanSelect.selectedIndex];
             const jatuhTempo = selected.getAttribute('data-jatuh-tempo');
-            const user = selected.getAttribute('data-user');
-            const alat = selected.getAttribute('data-alat');
             
             if (!jatuhTempo || !tanggalKembali.value) {
                 dendaBreakdown.style.display = 'none';
-                infoPeminjaman.textContent = '';
-                infoKeterlambatan.textContent = '';
                 return;
             }
 
             // Info Peminjaman
+            const user = selected.getAttribute('data-user');
+            const alat = selected.getAttribute('data-alat');
             infoPeminjaman.textContent = user + ' — ' + alat;
 
             // Hitung keterlambatan
@@ -453,65 +534,97 @@
             const kembali = new Date(tanggalKembali.value);
             const keterlambatan = Math.max(0, Math.ceil((kembali - tempo) / (1000 * 60 * 60 * 24)));
 
-            // Denda keterlambatan (Fixed: 50.000/hari)
-            const dendaKeterlambatan = keterlambatan * 50000;
-
-            // Data barang (dari data attribute)
-            const hargaAlat = parseFloat(selected.getAttribute('data-harga') || 0);
-            const persenRusak = parseInt(selected.getAttribute('data-persen-rusak') || 30);
-            const jumlah = parseInt(selected.getAttribute('data-jumlah') || 1);
-            const kondisi = kondisiSelect.value;
-
-            // Hitung denda barang
-            let dendaBarang = 0;
-            let descBarang = '';
-
-            if (kondisi === 'baik') {
-                dendaBarang = 0;
-                descBarang = 'Tidak ada denda';
-            } else if (kondisi === 'rusak') {
-                dendaBarang = (hargaAlat * (persenRusak / 100)) * jumlah;
-                descBarang = `Rusak (${persenRusak}% dari Rp ${hargaAlat.toLocaleString('id-ID')})`;
-            } else if (kondisi === 'hilang') {
-                dendaBarang = hargaAlat * jumlah;
-                descBarang = `Hilang (100% Ganti Rugi Rp ${hargaAlat.toLocaleString('id-ID')})`;
-            }
-
-            // Total denda
-            const totalDenda = dendaKeterlambatan + dendaBarang;
-
-            // Update display
-            document.getElementById('hari_telat').textContent = keterlambatan + ' hari';
-            document.getElementById('denda_hari').textContent = 'Rp ' + dendaKeterlambatan.toLocaleString('id-ID');
-            document.getElementById('total_denda').textContent = 'Rp ' + totalDenda.toLocaleString('id-ID');
-
-            if (dendaBarang > 0) {
-                document.getElementById('dendaBarangSection').style.display = 'block';
-                document.getElementById('desc_barang').textContent = descBarang;
-                document.getElementById('denda_barang').textContent = 'Rp ' + dendaBarang.toLocaleString('id-ID');
-            } else {
-                document.getElementById('dendaBarangSection').style.display = 'none';
-            }
+            // Denda keterlambatan
+            const tarifDendaHarian = 50000;
+            const dendaKeterlambatan = keterlambatan * tarifDendaHarian;
 
             // Info keterlambatan
             if (keterlambatan > 0) {
                 infoKeterlambatan.innerHTML = `
                     <span style="color:#1c1917;font-weight:600;">
-                        Terlambat ${keterlambatan} hari &nbsp;·&nbsp; 
-                        Denda: Rp ${dendaKeterlambatan.toLocaleString('id-ID')}
+                        Terlambat ${keterlambatan} hari · 
+                        Denda: Rp ${formatCurrency(dendaKeterlambatan)}
                     </span>
                 `;
             } else {
                 infoKeterlambatan.innerHTML = '<span style="color:#6e665e;">Tepat waktu</span>';
             }
 
+            // Hitung denda barang
+            let totalDendaBarang = 0;
+            let dendaDetailListHTML = '';
+
+            document.querySelectorAll('.kondisi-input').forEach(input => {
+                const kondisi = input.getAttribute('data-kondisi');
+                const jumlah = parseInt(input.value) || 0;
+
+                if (jumlah > 0) {
+                    let dendaDetail = 0;
+                    let descDetail = '';
+
+                    if (kondisi === 'baik') {
+                        dendaDetail = 0;
+                        descDetail = `Baik: ${jumlah} × Rp 0 = Rp 0`;
+                    } else if (kondisi === 'rusak') {
+                        dendaDetail = (hargaAlat * (persenRusak / 100)) * jumlah;
+                        descDetail = `Rusak: ${jumlah} × Rp ${formatCurrency(hargaAlat)} × ${persenRusak}% = Rp ${formatCurrency(dendaDetail)}`;
+                    } else if (kondisi === 'hilang') {
+                        dendaDetail = hargaAlat * jumlah;
+                        descDetail = `Hilang: ${jumlah} × Rp ${formatCurrency(hargaAlat)} = Rp ${formatCurrency(dendaDetail)}`;
+                    }
+
+                    if (dendaDetail > 0) {
+                        dendaDetailListHTML += `
+                            <div class="flex justify-between items-center text-[0.65rem]">
+                                <span class="text-label">${descDetail}</span>
+                            </div>
+                        `;
+                    }
+
+                    totalDendaBarang += dendaDetail;
+                }
+            });
+
+            // Total denda
+            const totalDenda = dendaKeterlambatan + totalDendaBarang;
+
+            // Update display
+            document.getElementById('hari_telat').textContent = keterlambatan + ' hari';
+            document.getElementById('denda_hari').textContent = 'Rp ' + formatCurrency(dendaKeterlambatan);
+            document.getElementById('denda_barang').textContent = 'Rp ' + formatCurrency(totalDendaBarang);
+            document.getElementById('dendaDetailList').innerHTML = dendaDetailListHTML;
+            document.getElementById('total_denda').textContent = 'Rp ' + formatCurrency(totalDenda);
+
+            if (totalDendaBarang > 0) {
+                document.getElementById('dendaBarangSection').style.display = 'block';
+            } else {
+                document.getElementById('dendaBarangSection').style.display = 'none';
+            }
+
             dendaBreakdown.style.display = 'block';
         }
 
-        // Trigger calculation on change
-        peminjamanSelect.addEventListener('change', hitungDenda);
+        // Trigger calculation on peminjaman selection change
+        peminjamanSelect.addEventListener('change', function() {
+            const selected = this.options[this.selectedIndex];
+            const jumlah = parseInt(selected.getAttribute('data-jumlah')) || 0;
+            
+            if (jumlah > 0) {
+                currentJumlahPinjam = jumlah;
+                hargaAlat = parseFloat(selected.getAttribute('data-harga')) || 0;
+                persenRusak = parseInt(selected.getAttribute('data-persen-rusak')) || 30;
+
+                document.getElementById('jumlahTotal').textContent = jumlah;
+                kondisiContainer.style.display = 'block';
+                generateKondisiFields();
+                hitungDenda();
+            } else {
+                kondisiContainer.style.display = 'none';
+                dendaBreakdown.style.display = 'none';
+            }
+        });
+
         tanggalKembali.addEventListener('change', hitungDenda);
-        kondisiSelect.addEventListener('change', hitungDenda);
 
         window.onclick = function(event) {
             const modal = document.getElementById('pengembalianModal');
