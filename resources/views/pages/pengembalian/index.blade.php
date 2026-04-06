@@ -117,22 +117,18 @@
     </div>
 
     {{-- ══ TABLE ══ --}}
-    <div class="bg-paper border border-rule overflow-hidden">
-        <table class="min-w-full">
+    <div class="bg-paper border border-rule overflow-x-auto">
+        <table class="w-full">
             <thead>
                 <tr class="border-b border-rule bg-cream">
-                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Peminjam</th>
-                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Alat</th>
-                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Tgl. Kembali</th>
-                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Detail Kondisi</th>
-                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Telat</th>
-                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Denda Keterlambatan</th>
-                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Denda Barang</th>
-                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Total Denda</th>
-                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Status</th>
-                    @if(auth()->user()->level == 'admin')
-                        <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Aksi</th>
-                    @endif
+                    <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label whitespace-nowrap">Peminjam</th>
+                    <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label whitespace-nowrap">Alat</th>
+                    <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label whitespace-nowrap">Tgl. Kembali</th>
+                    <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label whitespace-nowrap">Detail Kondisi</th>
+                    <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label whitespace-nowrap">Telat</th>
+                    <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label whitespace-nowrap">Total Denda</th>
+                    <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label whitespace-nowrap">Status</th>
+                    <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label whitespace-nowrap">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-rule">
@@ -140,22 +136,22 @@
                     <tr class="hover:bg-cream/40 transition-colors duration-100">
 
                         {{-- Peminjam --}}
-                        <td class="px-5 py-4 font-sans text-[0.78rem] font-medium text-ink whitespace-nowrap">
+                        <td class="px-4 py-4 font-sans text-[0.78rem] font-medium text-ink whitespace-nowrap">
                             {{ $item->peminjaman->user->username ?? '—' }}
                         </td>
 
                         {{-- Alat --}}
-                        <td class="px-5 py-4 font-sans text-[0.78rem] text-label whitespace-nowrap">
+                        <td class="px-4 py-4 font-sans text-[0.78rem] text-label whitespace-nowrap">
                             {{ $item->peminjaman->alat->nama_alat ?? '—' }}
                         </td>
 
                         {{-- Tanggal Kembali --}}
-                        <td class="px-5 py-4 font-sans text-[0.78rem] text-label whitespace-nowrap">
+                        <td class="px-4 py-4 font-sans text-[0.78rem] text-label whitespace-nowrap">
                             {{ $item->tanggal_kembali_aktual->format('d M Y') }}
                         </td>
 
                         {{-- Detail Kondisi --}}
-                        <td class="px-5 py-4 whitespace-nowrap">
+                        <td class="px-4 py-4 whitespace-nowrap">
                             <div class="flex flex-col gap-1.5">
                                 @foreach($item->details as $detail)
                                     @if($detail->kondisi_alat == 'baik')
@@ -176,7 +172,7 @@
                         </td>
 
                         {{-- Keterlambatan --}}
-                        <td class="px-5 py-4 whitespace-nowrap">
+                        <td class="px-4 py-4 whitespace-nowrap">
                             @if($item->keterlambatan_hari > 0)
                                 <span class="font-sans text-[0.75rem] font-semibold text-espresso">
                                     {{ $item->keterlambatan_hari }} hari
@@ -188,40 +184,15 @@
                             @endif
                         </td>
 
-                        {{-- Denda Keterlambatan --}}
-                        <td class="px-5 py-4 whitespace-nowrap">
-                            @if($item->denda_keterlambatan > 0)
-                                <span class="font-sans text-[0.75rem] font-semibold text-ink">
-                                    Rp {{ number_format($item->denda_keterlambatan, 0, ',', '.') }}
-                                </span>
-                            @else
-                                <span class="font-sans text-[0.75rem] text-ghost">-</span>
-                            @endif
-                        </td>
-
-                        {{-- Denda Barang --}}
-                        <td class="px-5 py-4 whitespace-nowrap">
-                            @php
-                                $totalDendaDetail = $item->details->sum('denda_barang');
-                            @endphp
-                            @if($totalDendaDetail > 0)
-                                <span class="font-sans text-[0.75rem] font-semibold text-espresso">
-                                    Rp {{ number_format($totalDendaDetail, 0, ',', '.') }}
-                                </span>
-                            @else
-                                <span class="font-sans text-[0.75rem] text-ghost">-</span>
-                            @endif
-                        </td>
-
                         {{-- Total Denda --}}
-                        <td class="px-5 py-4 whitespace-nowrap">
+                        <td class="px-4 py-4 whitespace-nowrap">
                             <span class="font-sans text-[0.8rem] font-bold text-ink">
                                 Rp {{ number_format($item->total_denda, 0, ',', '.') }}
                             </span>
                         </td>
 
                         {{-- Status Denda --}}
-                        <td class="px-5 py-4 whitespace-nowrap">
+                        <td class="px-4 py-4 whitespace-nowrap">
                             @if($item->status_denda == 'lunas')
                                 <span class="px-2.5 py-1 border border-ink/20 bg-ink/5 font-sans text-[0.52rem] font-semibold tracking-[0.15em] uppercase text-ink">
                                     ✓ Lunas
@@ -234,25 +205,41 @@
                         </td>
 
                         {{-- Aksi --}}
-                        @if(auth()->user()->level == 'admin')
-                            <td class="px-5 py-4 whitespace-nowrap">
-                                <form action="{{ route('pengembalian.destroy', $item->pengembalian_id) }}" method="POST"
-                                    class="inline" onsubmit="return confirm('Yakin ingin menghapus data pengembalian ini?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit"
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <div class="flex gap-2 items-center">
+                                {{-- Bayar Denda Button (jika belum lunas) --}}
+                                @if($item->status_denda == 'belum_lunas' && auth()->user()->level == 'admin')
+                                    <button 
+                                        type="button"
+                                        onclick="openBayarModal({{ $item->pengembalian_id }}, {{ $item->total_denda }})"
                                         class="w-7 h-7 flex items-center justify-center border border-rule text-ghost
-                                               hover:border-espresso hover:text-espresso transition-all duration-150">
-                                        <i class="fas fa-trash text-[0.6rem]"></i>
+                                               hover:border-ink hover:text-ink transition-all duration-150"
+                                        title="Bayar Denda">
+                                        <i class="fas fa-credit-card text-[0.6rem]"></i>
                                     </button>
-                                </form>
-                            </td>
-                        @endif
+                                @endif
+
+                                {{-- Hapus Button --}}
+                                @if(auth()->user()->level == 'admin')
+                                    <form action="{{ route('pengembalian.destroy', $item->pengembalian_id) }}" method="POST"
+                                        class="inline" onsubmit="return confirm('Yakin ingin menghapus data pengembalian ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                            class="w-7 h-7 flex items-center justify-center border border-rule text-ghost
+                                                   hover:border-espresso hover:text-espresso transition-all duration-150"
+                                            title="Hapus">
+                                            <i class="fas fa-trash text-[0.6rem]"></i>
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        </td>
 
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="10" class="px-5 py-16 text-center">
+                        <td colspan="8" class="px-4 py-16 text-center">
                             <div class="w-12 h-12 bg-cream border border-rule flex items-center justify-center mx-auto mb-4">
                                 <i class="fas fa-inbox text-ghost text-base"></i>
                             </div>
@@ -427,6 +414,64 @@
         </div>
     </div>
 
+    {{-- ══ MODAL BAYAR DENDA ══ --}}
+    <div id="bayarModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4 py-8"
+        style="background:rgba(26,23,20,0.55)">
+        <div class="relative w-full max-w-md bg-paper border border-rule shadow-2xl flex flex-col animate-fade-up">
+
+            {{-- Modal Header --}}
+            <div class="flex-shrink-0 flex items-end justify-between px-8 pt-7 pb-5 border-b border-rule">
+                <div>
+                    <p class="font-sans text-[0.5rem] font-semibold tracking-[0.35em] uppercase text-label mb-1">
+                        Pembayaran
+                    </p>
+                    <h3 class="font-serif text-ink text-2xl font-normal leading-none">
+                        Bayar Denda
+                    </h3>
+                </div>
+                <button onclick="closeBayarModal()"
+                    class="w-7 h-7 flex items-center justify-center border border-rule text-ghost hover:border-espresso hover:text-ink transition-all duration-150 mb-0.5">
+                    <i class="fas fa-times text-[0.6rem]"></i>
+                </button>
+            </div>
+
+            {{-- Modal Body --}}
+            <form action="{{ route('pengembalian.bayar') }}" method="POST" class="flex flex-col">
+                @csrf
+
+                <div class="px-8 py-6 space-y-6">
+
+                    {{-- Total Denda Info --}}
+                    <div class="bg-cream border border-rule p-4 rounded">
+                        <p class="font-sans text-[0.7rem] font-semibold tracking-[0.2em] uppercase text-label mb-2">
+                            Total Denda yang Harus Dibayar
+                        </p>
+                        <p id="bayar_total" class="font-serif text-[2rem] font-bold text-espresso">
+                            Rp 0
+                        </p>
+                    </div>
+
+                    {{-- Hidden Input --}}
+                    <input type="hidden" id="pengembalian_id_input" name="pengembalian_id" value="">
+
+                </div>
+
+                {{-- Modal Footer --}}
+                <div class="flex-shrink-0 flex gap-3 px-8 py-5 border-t border-rule bg-paper">
+                    <button type="submit"
+                        class="flex-1 bg-ink text-paper font-sans text-[0.6rem] font-semibold tracking-[0.25em] uppercase py-3.5 hover:bg-espresso transition-colors duration-200">
+                        ✓ Konfirmasi Pembayaran
+                    </button>
+                    <button type="button" onclick="closeBayarModal()"
+                        class="flex-1 border border-rule text-label font-sans text-[0.6rem] font-semibold tracking-[0.25em] uppercase py-3.5 hover:border-espresso hover:text-espresso transition-all duration-200">
+                        Batal
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
     <script>
         function openModal() {
             document.getElementById('pengembalianModal').classList.remove('hidden');
@@ -434,6 +479,16 @@
 
         function closeModal() {
             document.getElementById('pengembalianModal').classList.add('hidden');
+        }
+
+        function openBayarModal(pengembalianId, totalDenda) {
+            document.getElementById('pengembalian_id_input').value = pengembalianId;
+            document.getElementById('bayar_total').textContent = 'Rp ' + formatCurrency(totalDenda);
+            document.getElementById('bayarModal').classList.remove('hidden');
+        }
+
+        function closeBayarModal() {
+            document.getElementById('bayarModal').classList.add('hidden');
         }
 
         const peminjamanSelect = document.getElementById('peminjaman_select');
@@ -628,7 +683,9 @@
 
         window.onclick = function(event) {
             const modal = document.getElementById('pengembalianModal');
+            const bayarModal = document.getElementById('bayarModal');
             if (event.target == modal) closeModal();
+            if (event.target == bayarModal) closeBayarModal();
         }
     </script>
 

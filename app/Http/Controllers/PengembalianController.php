@@ -46,9 +46,6 @@ class PengembalianController extends Controller
         $peminjaman = Peminjaman::findOrFail($request->peminjaman_id);
         $alat = $peminjaman->alat;
 
-        // ═════════════════════════════════════════════════════════════
-        // VALIDASI TOTAL JUMLAH BARANG
-        // ═════════════════════════════════════════════════════════════
         $totalJumlahDikembalikan = 0;
         foreach ($validated['kondisi_details'] as $detail) {
             $totalJumlahDikembalikan += $detail['jumlah'];
@@ -60,22 +57,13 @@ class PengembalianController extends Controller
                 ->withInput();
         }
 
-        // ═════════════════════════════════════════════════════════════
-        // HITUNG KETERLAMBATAN
-        // ═════════════════════════════════════════════════════════════
         $tanggalKembali = Carbon::parse($request->tanggal_kembali_aktual);
         $jatuhTempo = Carbon::parse($peminjaman->tanggal_kembali_rencana);
         $keterlambatan = max(0, $tanggalKembali->diffInDays($jatuhTempo, false) * -1);
 
-        // ═════════════════════════════════════════════════════════════
-        // HITUNG DENDA KETERLAMBATAN (Fixed: Rp 50.000/hari)
-        // ═══════════════���═════════════════════════════════════════════
         $tarifDendaHarian = 50000;
         $dendaKeterlambatan = $keterlambatan * $tarifDendaHarian;
 
-        // ═════════════════════════════════════════════════════════════
-        // HITUNG DENDA BARANG PER KONDISI
-        // ═════════════════════════════════════════════════════════════
         $persenDendaRusak = $alat->persen_denda_rusak ?? 30;
 
         DB::transaction(function () use (
@@ -88,19 +76,17 @@ class PengembalianController extends Controller
             $persenDendaRusak,
             $request
         ) {
-            // Buat record pengembalian utama (TANPA kondisi_alat)
             $pengembalian = Pengembalian::create([
                 'peminjaman_id' => $validated['peminjaman_id'],
                 'tanggal_kembali_aktual' => $validated['tanggal_kembali_aktual'],
                 'keterlambatan_hari' => $keterlambatan,
                 'tarif_denda_per_hari' => $tarifDendaHarian,
                 'denda_keterlambatan' => $dendaKeterlambatan,
-                'total_denda' => 0, // Akan diupdate setelah hitung detail
+                'total_denda' => 0,
                 'status_denda' => 'belum_lunas',
                 'keterangan' => $validated['keterangan'],
             ]);
 
-            // Hitung denda barang dan buat detail records
             $totalDendaBarang = 0;
             $jumlahBaik = 0;
 
@@ -118,7 +104,6 @@ class PengembalianController extends Controller
                     $dendaDetail = $alat->harga_alat * $jumlah;
                 }
 
-                // Buat detail record
                 PengembalianDetail::create([
                     'pengembalian_id' => $pengembalian->pengembalian_id,
                     'kondisi_alat' => $kondisi,
@@ -131,22 +116,18 @@ class PengembalianController extends Controller
                 $totalDendaBarang += $dendaDetail;
             }
 
-            // Update total denda pada pengembalian
             $totalDenda = $dendaKeterlambatan + $totalDendaBarang;
             $pengembalian->update([
                 'total_denda' => $totalDenda,
                 'status_denda' => $totalDenda > 0 ? 'belum_lunas' : 'lunas',
             ]);
 
-            // Update status peminjaman
             $peminjaman->update(['status' => 'dikembalikan']);
 
-            // Kembalikan stok untuk barang yang baik/rusak
             if ($jumlahBaik > 0) {
                 $alat->increment('stok_tersedia', $jumlahBaik);
             }
 
-            // Update kondisi alat jika ada rusak atau hilang
             $hasRusakOrHilang = collect($validated['kondisi_details'])
                 ->whereIn('kondisi', ['rusak', 'hilang'])
                 ->isNotEmpty();
@@ -156,7 +137,6 @@ class PengembalianController extends Controller
             }
         });
 
-        // Log aktivitas
         LogAktivitas::create([
             'user_id' => Auth::id(),
             'aktivitas' => 'Proses Pengembalian',
@@ -167,9 +147,33 @@ class PengembalianController extends Controller
         return redirect()->route('pengembalian.index')->with('success', 'Pengembalian berhasil diproses!');
     }
 
+    // ✅ NEW: Bayar Denda
+    public function bayar(Request $request)
+    {
+        $validated = $request->validate([
+            'pengembalian_id' => 'required|exists:pengembalian,pengembalian_id',
+        ]);
+
+        $pengembalian = Pengembalian::findOrFail($validated['pengembalian_id']);
+
+        DB::transaction(function () use ($pengembalian) {
+            $pengembalian->update([
+                'status_denda' => 'lunas',
+            ]);
+        });
+
+        LogAktivitas::create([
+            'user_id' => Auth::id(),
+            'aktivitas' => 'Pembayaran Denda - Rp ' . number_format($pengembalian->total_denda, 0, ',', '.'),
+            'modul' => 'Pengembalian',
+            'timestamp' => now(),
+        ]);
+
+        return redirect()->route('pengembalian.index')->with('success', 'Denda berhasil dibayarkan!');
+    }
+
     public function destroy(Pengembalian $pengembalian)
     {
-        // Hapus semua detail terlebih dahulu
         PengembalianDetail::where('pengembalian_id', $pengembalian->pengembalian_id)->delete();
         
         $pengembalian->delete();

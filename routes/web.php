@@ -105,6 +105,11 @@ Route::middleware('auth')->group(function () {
         ->name('pengembalian.store')
         ->middleware('role:admin,petugas,peminjam');
     
+    // ✅ NEW: Bayar Denda - Admin only
+    Route::post('/pengembalian/bayar', [PengembalianController::class, 'bayar'])
+        ->name('pengembalian.bayar')
+        ->middleware('role:admin');
+    
     // Delete pengembalian - Admin only
     Route::delete('/pengembalian/{pengembalian}', [PengembalianController::class, 'destroy'])
         ->name('pengembalian.destroy')
