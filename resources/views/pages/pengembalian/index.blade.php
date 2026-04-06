@@ -137,9 +137,9 @@
                 @forelse($pengembalian as $item)
                     <tr class="hover:bg-cream/40 transition-colors duration-100">
 
-                        {{-- ✅ FIXED: Peminjam --}}
+                        {{-- ✅ FIXED: Peminjam - Gunakan helper method getNamaPeminjam() --}}
                         <td class="px-4 py-4 font-sans text-[0.78rem] font-medium text-ink whitespace-nowrap">
-                            {{ optional(optional($item->peminjaman)->user)->username ?? '—' }}
+                            {{ $item->peminjaman->getNamaPeminjam() ?? '—' }}
                         </td>
 
                         {{-- ✅ FIXED: Alat --}}
@@ -214,7 +214,7 @@
                                     @if($item->status_denda == 'belum_lunas')
                                         <button 
                                             type="button"
-                                            onclick="openBayarModal({{ $item->pengembalian_id }}, '{{ optional(optional($item->peminjaman)->user)->username ?? 'Unknown' }}', {{ $item->total_denda }})"
+                                            onclick="openBayarModal({{ $item->pengembalian_id }}, '{{ $item->peminjaman->getNamaPeminjam() }}', {{ $item->total_denda }})"
                                             class="px-3 py-2 bg-ink text-paper border border-ink font-sans text-[0.55rem] font-semibold tracking-[0.1em] uppercase
                                                    hover:bg-espresso hover:border-espresso transition-all duration-150 flex items-center gap-1.5">
                                             <i class="fas fa-check text-xs"></i>
@@ -295,12 +295,12 @@
                                 @foreach(\App\Models\Peminjaman::with(['user', 'alat'])->where('status', 'disetujui')->whereDoesntHave('pengembalian')->get() as $pinjam)
                                     <option value="{{ $pinjam->peminjaman_id }}"
                                         data-jatuh-tempo="{{ $pinjam->tanggal_kembali_rencana->format('Y-m-d') }}"
-                                        data-user="{{ optional($pinjam->user)->username ?? 'Unknown' }}"
+                                        data-user="{{ $pinjam->getNamaPeminjam() }}"
                                         data-alat="{{ optional($pinjam->alat)->nama_alat ?? 'Unknown' }}"
                                         data-harga="{{ optional($pinjam->alat)->harga_alat ?? 0 }}"
                                         data-persen-rusak="{{ optional($pinjam->alat)->persen_denda_rusak ?? 30 }}"
                                         data-jumlah="{{ $pinjam->jumlah }}">
-                                        {{ optional($pinjam->user)->username ?? 'Unknown' }} — {{ optional($pinjam->alat)->nama_alat ?? 'Unknown' }}
+                                        {{ $pinjam->getNamaPeminjam() }} — {{ optional($pinjam->alat)->nama_alat ?? 'Unknown' }}
                                         ({{ $pinjam->tanggal_peminjaman->format('d/m/Y') }}) × {{ $pinjam->jumlah }}
                                     </option>
                                 @endforeach
