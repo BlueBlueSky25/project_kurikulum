@@ -481,7 +481,7 @@
                             <input type="hidden" name="kondisi_details[${option.value}][kondisi]" value="${option.value}">
                         </div>
                         <span class="font-sans text-[0.65rem] text-label whitespace-nowrap">
-                            dari {{ currentJumlahPinjam }}
+                            dari ${currentJumlahPinjam}
                         </span>
                     </div>
                 `;
