@@ -515,7 +515,7 @@
             document.getElementById('bayarModal').classList.add('hidden');
         }
 
-        // ✅ Enable/Disable submit button based on checkbox
+        // Enable/Disable submit button based on checkbox
         document.getElementById('konfirmasiCheckbox').addEventListener('change', function() {
             document.getElementById('submitBayar').disabled = !this.checked;
         });
