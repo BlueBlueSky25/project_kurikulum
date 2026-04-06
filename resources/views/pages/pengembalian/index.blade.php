@@ -213,7 +213,7 @@
                                         type="button"
                                         onclick="openBayarModal({{ $item->pengembalian_id }}, {{ $item->total_denda }})"
                                         class="w-7 h-7 flex items-center justify-center border border-rule text-ghost
-                                               hover:border-ink hover:text-ink transition-all duration-150"
+                                            hover:border-ink hover:text-ink transition-all duration-150"
                                         title="Bayar Denda">
                                         <i class="fas fa-credit-card text-[0.6rem]"></i>
                                     </button>
