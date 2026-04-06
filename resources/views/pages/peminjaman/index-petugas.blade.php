@@ -1,408 +1,107 @@
-@extends('layouts.app')
+{{-- Cari bagian foreach $peminjaman dan ubah jadi: --}}
 
-@section('title', 'Peminjaman')
+@foreach($peminjaman as $item)
+    <div class="px-6 py-5 hover:bg-cream/50 transition-colors duration-150">
 
-@section('content')
-
-    {{-- ══ PAGE HEADER ══ --}}
-    <div class="mb-8">
-        <p class="font-sans text-[0.58rem] font-semibold tracking-[0.35em] uppercase text-label mb-1">
-            Manajemen Transaksi
-        </p>
-        <h2 class="font-serif text-ink text-3xl font-normal leading-none">
-            Tracking Peminjaman
-        </h2>
-        <div class="mt-3 h-px w-10 bg-rule"></div>
-    </div>
-
-    {{-- ══ SUCCESS ALERT ══ --}}
-    @if(session('success'))
-        <div class="flex items-center justify-between border-l-2 border-espresso bg-cream px-4 py-3 mb-6">
-            <span class="font-sans text-[0.75rem] tracking-wide text-ink">{{ session('success') }}</span>
-            <button onclick="this.parentElement.remove()" class="text-label hover:text-ink transition-colors ml-4">
-                <i class="fas fa-times text-xs"></i>
-            </button>
-        </div>
-    @endif
-
-    {{-- ══ SUMMARY CARDS ══ --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-
-        <div class="bg-paper border border-rule p-5 group hover:border-espresso/30 transition-colors duration-200">
-            <div class="flex items-start justify-between gap-3">
-                <div>
-                    <p class="font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label mb-2">Menunggu Persetujuan</p>
-                    <p class="font-serif text-[1.9rem] font-normal leading-none text-ink">{{ $peminjamanMenunggu->count() }}</p>
-                </div>
-                <div class="w-10 h-10 bg-dim flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-clock text-xs text-paper"></i>
-                </div>
+        {{-- Top Row --}}
+        <div class="flex items-start justify-between gap-4 mb-3">
+            <div class="flex-1 min-w-0">
+                <h4 class="font-serif text-ink text-base font-normal leading-snug truncate">
+                    {{ $item->alat->nama_alat }}
+                </h4>
+                <p class="font-sans text-[0.62rem] text-label tracking-wide mt-0.5">
+                    {{ $item->tanggal_peminjaman->format('d M Y') }}
+                    <span class="mx-1 text-ghost">→</span>
+                    {{ $item->tanggal_kembali_rencana->format('d M Y') }}
+                </p>
+                {{-- Tampilkan kode peminjaman --}}
+                <p class="font-mono text-[0.6rem] text-espresso font-semibold mt-1">
+                    {{ $item->kode_peminjaman }}
+                </p>
             </div>
-            <div class="mt-4 h-px w-0 bg-espresso/20 group-hover:w-full transition-all duration-500"></div>
-        </div>
 
-        <div class="bg-paper border border-rule p-5 group hover:border-espresso/30 transition-colors duration-200">
-            <div class="flex items-start justify-between gap-3">
-                <div>
-                    <p class="font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label mb-2">Sedang Dipinjam</p>
-                    <p class="font-serif text-[1.9rem] font-normal leading-none text-ink">{{ $peminjamanAktif->count() }}</p>
-                </div>
-                <div class="w-10 h-10 bg-espresso flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-check-circle text-xs text-paper"></i>
-                </div>
-            </div>
-            <div class="mt-4 h-px w-0 bg-espresso/20 group-hover:w-full transition-all duration-500"></div>
-        </div>
-
-        <div class="bg-paper border border-rule p-5 group hover:border-espresso/30 transition-colors duration-200">
-            <div class="flex items-start justify-between gap-3">
-                <div>
-                    <p class="font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label mb-2">Sudah Dikembalikan</p>
-                    <p class="font-serif text-[1.9rem] font-normal leading-none text-ink">{{ $peminjamanSelesai->count() }}</p>
-                </div>
-                <div class="w-10 h-10 bg-ghost flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-undo-alt text-xs text-paper"></i>
-                </div>
-            </div>
-            <div class="mt-4 h-px w-0 bg-espresso/20 group-hover:w-full transition-all duration-500"></div>
-        </div>
-
-    </div>
-
-    {{-- ══ TABS ══ --}}
-    <div class="border-b border-rule mb-6">
-        <div class="flex gap-0">
-
-            <button onclick="showTab('menunggu')" id="btn-menunggu"
-                class="group relative px-6 py-3.5 font-sans text-[0.62rem] font-semibold tracking-[0.2em] uppercase flex items-center gap-2 transition-colors duration-150 border-b-2 border-espresso text-ink">
-                <i class="fas fa-hourglass-half text-xs"></i>
-                <span>Menunggu</span>
-                <span class="bg-espresso text-paper font-sans text-[0.5rem] font-bold px-1.5 py-0.5 tracking-wide">
-                    {{ $peminjamanMenunggu->count() }}
+            {{-- Status Badge --}}
+            @if($item->status == 'disetujui')
+                <span class="flex-shrink-0 px-2.5 py-1 border border-ink/20 bg-ink/5 font-sans text-[0.55rem] font-semibold tracking-[0.15em] uppercase text-ink">
+                    Disetujui
                 </span>
-            </button>
-
-            <button onclick="showTab('aktif')" id="btn-aktif"
-                class="group relative px-6 py-3.5 font-sans text-[0.62rem] font-semibold tracking-[0.2em] uppercase flex items-center gap-2 transition-colors duration-150 border-b-2 border-transparent text-label hover:text-ink">
-                <i class="fas fa-clipboard-check text-xs"></i>
-                <span>Dipinjam</span>
-                <span class="bg-rule text-label font-sans text-[0.5rem] font-bold px-1.5 py-0.5 tracking-wide">
-                    {{ $peminjamanAktif->count() }}
+            @elseif($item->status == 'menunggu')
+                <span class="flex-shrink-0 px-2.5 py-1 border border-dim/20 bg-dim/5 font-sans text-[0.55rem] font-semibold tracking-[0.15em] uppercase text-dim">
+                    Menunggu
                 </span>
-            </button>
-
-            <button onclick="showTab('selesai')" id="btn-selesai"
-                class="group relative px-6 py-3.5 font-sans text-[0.62rem] font-semibold tracking-[0.2em] uppercase flex items-center gap-2 transition-colors duration-150 border-b-2 border-transparent text-label hover:text-ink">
-                <i class="fas fa-check-double text-xs"></i>
-                <span>Selesai</span>
-            </button>
-
+            @elseif($item->status == 'ditolak')
+                <span class="flex-shrink-0 px-2.5 py-1 border border-espresso/20 bg-espresso/5 font-sans text-[0.55rem] font-semibold tracking-[0.15em] uppercase text-espresso">
+                    Ditolak
+                </span>
+            @elseif($item->status == 'dikembalikan')
+                <span class="flex-shrink-0 px-2.5 py-1 border border-rule bg-cream font-sans text-[0.55rem] font-semibold tracking-[0.15em] uppercase text-label">
+                    Dikembalikan
+                </span>
+            @endif
         </div>
-    </div>
 
-    {{-- ══ TAB: MENUNGGU PERSETUJUAN ══ --}}
-    <div id="tab-menunggu" class="tab-content">
-        @if($peminjamanMenunggu->isEmpty())
-            <div class="bg-paper border border-rule p-14 text-center">
-                <div class="w-12 h-12 bg-cream border border-rule flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-check text-ghost text-base"></i>
-                </div>
-                <p class="font-serif text-ink text-lg font-normal mb-1">Semua sudah diproses</p>
-                <p class="font-sans text-[0.7rem] text-label tracking-wide">Tidak ada peminjaman yang menunggu persetujuan.</p>
+        {{-- Meta Info --}}
+        <div class="grid grid-cols-2 gap-3 mb-3">
+            <div class="bg-cream px-3 py-2">
+                <p class="font-sans text-[0.52rem] font-semibold tracking-[0.2em] uppercase text-ghost mb-1">
+                    Peminjam
+                </p>
+                <p class="font-sans text-[0.78rem] font-medium text-ink">
+                    {{-- KONDISIONAL: Guest atau User --}}
+                    @if($item->isGuest())
+                        <span class="inline-block px-2 py-0.5 bg-cream border border-label/30 text-[0.65rem] rounded mr-1">GUEST</span>
+                        {{ $item->nama_peminjam_guest }}
+                    @else
+                        {{ $item->user->username ?? '-' }}
+                    @endif
+                </p>
             </div>
-        @else
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                @foreach($peminjamanMenunggu as $item)
-                    <div class="bg-paper border border-rule group hover:border-espresso/30 transition-colors duration-200 flex flex-col">
+            <div class="bg-cream px-3 py-2">
+                <p class="font-sans text-[0.52rem] font-semibold tracking-[0.2em] uppercase text-ghost mb-1">
+                    Jumlah
+                </p>
+                <p class="font-sans text-[0.78rem] font-medium text-ink">
+                    {{ $item->jumlah }} unit
+                </p>
+            </div>
+        </div>
 
-                        {{-- Card Header --}}
-                        <div class="bg-espresso px-5 py-4 flex items-start justify-between gap-3">
-                            <div class="flex-1 min-w-0">
-                                <h3 class="font-serif text-paper text-base font-normal leading-snug truncate">
-                                    {{ $item->alat->nama_alat }}
-                                </h3>
-                                <p class="font-sans text-[0.58rem] tracking-[0.2em] uppercase text-paper/40 mt-0.5">
-                                    {{ $item->user->username }}
-                                </p>
-                            </div>
-                            <span class="flex-shrink-0 px-2.5 py-1 border border-paper/20 bg-paper/10 font-sans text-[0.52rem] font-semibold tracking-[0.15em] uppercase text-paper/70">
-                                Menunggu
-                            </span>
-                        </div>
+        {{-- Telepon (buat guest) --}}
+        @if($item->isGuest())
+            <p class="font-sans text-[0.7rem] text-label mb-2">
+                <i class="fas fa-phone text-espresso mr-1"></i>
+                <strong>Kontak:</strong> {{ $item->telepon_peminjam_guest }}
+            </p>
+        @endif
 
-                        {{-- Card Body --}}
-                        <div class="p-5 flex-1 flex flex-col gap-4">
+        {{-- Tujuan --}}
+        @if($item->tujuan_peminjaman)
+            <p class="font-sans text-[0.7rem] text-label leading-relaxed mb-2">
+                <span class="font-semibold text-dim">Tujuan:</span>
+                {{ $item->tujuan_peminjaman }}
+            </p>
+        @endif
 
-                            {{-- Detail Info --}}
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="bg-cream px-3 py-2">
-                                    <p class="font-sans text-[0.5rem] font-semibold tracking-[0.2em] uppercase text-ghost mb-1">Jumlah</p>
-                                    <p class="font-sans text-[0.78rem] font-medium text-ink">{{ $item->jumlah }} unit</p>
-                                </div>
-                                <div class="bg-cream px-3 py-2">
-                                    <p class="font-sans text-[0.5rem] font-semibold tracking-[0.2em] uppercase text-ghost mb-1">Tgl. Pinjam</p>
-                                    <p class="font-sans text-[0.78rem] font-medium text-ink">{{ $item->tanggal_peminjaman->format('d M Y') }}</p>
-                                </div>
-                                <div class="bg-cream px-3 py-2 col-span-2">
-                                    <p class="font-sans text-[0.5rem] font-semibold tracking-[0.2em] uppercase text-ghost mb-1">Tgl. Kembali Rencana</p>
-                                    <p class="font-sans text-[0.78rem] font-medium text-ink">{{ $item->tanggal_kembali_rencana->format('d M Y') }}</p>
-                                </div>
-                            </div>
-
-                            {{-- Tujuan --}}
-                            @if($item->tujuan_peminjaman)
-                                <div class="border-l-2 border-rule pl-3">
-                                    <p class="font-sans text-[0.52rem] font-semibold tracking-[0.2em] uppercase text-ghost mb-1">Tujuan</p>
-                                    <p class="font-sans text-[0.72rem] text-label leading-relaxed">{{ $item->tujuan_peminjaman }}</p>
-                                </div>
-                            @endif
-
-                            {{-- Action Buttons --}}
-                            <div class="flex gap-2 pt-3 border-t border-rule mt-auto">
-                                <button
-                                    onclick="approvePeminjaman({{ $item->peminjaman_id }})"
-                                    class="flex-1 flex items-center justify-center gap-2 bg-espresso text-paper
-                                           px-3 py-2.5 font-sans text-[0.58rem] font-semibold tracking-[0.15em] uppercase
-                                           hover:bg-ink transition-colors duration-200"
-                                >
-                                    <i class="fas fa-check text-xs"></i>
-                                    <span>Setujui</span>
-                                </button>
-                                <button
-                                    onclick="rejectPeminjaman({{ $item->peminjaman_id }})"
-                                    class="flex-1 flex items-center justify-center gap-2 border border-rule text-label
-                                           px-3 py-2.5 font-sans text-[0.58rem] font-semibold tracking-[0.15em] uppercase
-                                           hover:border-espresso hover:text-espresso transition-all duration-200"
-                                >
-                                    <i class="fas fa-times text-xs"></i>
-                                    <span>Tolak</span>
-                                </button>
-                            </div>
-
-                        </div>
-                    </div>
-                @endforeach
+        {{-- Action Buttons (Approve/Reject) --}}
+        @if($item->status == 'menunggu')
+            <div class="flex gap-2 mt-3">
+                <form action="{{ route('peminjaman.approve', $item->peminjaman_id) }}" method="POST" class="inline">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit" class="px-3 py-1.5 bg-ink text-paper font-sans text-[0.6rem] font-semibold tracking-wide hover:bg-espresso transition-colors">
+                        <i class="fas fa-check mr-1"></i> Setujui
+                    </button>
+                </form>
+                <form action="{{ route('peminjaman.update', $item->peminjaman_id) }}" method="POST" class="inline">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="status" value="ditolak">
+                    <button type="submit" class="px-3 py-1.5 bg-espresso text-paper font-sans text-[0.6rem] font-semibold tracking-wide hover:bg-ink transition-colors">
+                        <i class="fas fa-times mr-1"></i> Tolak
+                    </button>
+                </form>
             </div>
         @endif
+
     </div>
-
-    {{-- ══ TAB: SEDANG DIPINJAM ══ --}}
-    <div id="tab-aktif" class="tab-content hidden">
-        @if($peminjamanAktif->isEmpty())
-            <div class="bg-paper border border-rule p-14 text-center">
-                <div class="w-12 h-12 bg-cream border border-rule flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-inbox text-ghost text-base"></i>
-                </div>
-                <p class="font-serif text-ink text-lg font-normal mb-1">Tidak ada alat dipinjam</p>
-                <p class="font-sans text-[0.7rem] text-label tracking-wide">Semua alat sedang tersedia di tempat.</p>
-            </div>
-        @else
-            <div class="bg-paper border border-rule overflow-hidden">
-                <table class="min-w-full">
-                    <thead>
-                        <tr class="border-b border-rule bg-cream">
-                            <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Alat</th>
-                            <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Peminjam</th>
-                            <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Jumlah</th>
-                            <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Tgl. Pinjam</th>
-                            <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Tgl. Kembali</th>
-                            <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Status</th>
-                            <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-rule">
-                        @foreach($peminjamanAktif as $item)
-                            @php
-                                $today      = now();
-                                $targetDate = $item->tanggal_kembali_rencana;
-                                $isLate     = $today->gt($targetDate);
-                                $daysLeft   = $today->diffInDays($targetDate, false);
-                            @endphp
-                            <tr class="hover:bg-cream/40 transition-colors duration-100
-                                @if($isLate) bg-espresso/[0.03] @elseif($daysLeft <= 1) bg-dim/[0.03] @endif">
-
-                                <td class="px-5 py-4 font-sans text-[0.78rem] font-medium text-ink whitespace-nowrap">
-                                    {{ $item->alat->nama_alat }}
-                                </td>
-                                <td class="px-5 py-4 font-sans text-[0.78rem] text-label whitespace-nowrap">
-                                    {{ $item->user->username }}
-                                </td>
-                                <td class="px-5 py-4 font-sans text-[0.78rem] text-label whitespace-nowrap">
-                                    {{ $item->jumlah }} unit
-                                </td>
-                                <td class="px-5 py-4 font-sans text-[0.78rem] text-label whitespace-nowrap">
-                                    {{ $item->tanggal_peminjaman->format('d M Y') }}
-                                </td>
-                                <td class="px-5 py-4 whitespace-nowrap">
-                                    <p class="font-sans text-[0.78rem] font-medium text-ink">
-                                        {{ $item->tanggal_kembali_rencana->format('d M Y') }}
-                                    </p>
-                                    @if($isLate)
-                                        <p class="font-sans text-[0.6rem] text-espresso mt-0.5">
-                                            <i class="fas fa-exclamation-triangle text-[0.5rem]"></i>
-                                            Terlambat {{ abs($daysLeft) }} hari
-                                        </p>
-                                    @elseif($daysLeft <= 1)
-                                        <p class="font-sans text-[0.6rem] text-dim mt-0.5">
-                                            <i class="fas fa-clock text-[0.5rem]"></i>
-                                            Segera dikembalikan
-                                        </p>
-                                    @else
-                                        <p class="font-sans text-[0.6rem] text-ghost mt-0.5">
-                                            Sisa {{ $daysLeft }} hari
-                                        </p>
-                                    @endif
-                                </td>
-                                <td class="px-5 py-4 whitespace-nowrap">
-                                    <span class="px-2.5 py-1 border border-ink/20 bg-ink/5 font-sans text-[0.52rem] font-semibold tracking-[0.15em] uppercase text-ink">
-                                        Disetujui
-                                    </span>
-                                </td>
-                                <td class="px-5 py-4 whitespace-nowrap">
-                                    <a href="{{ route('pengembalian.index') }}"
-                                        class="flex items-center gap-1.5 border border-espresso px-3 py-1.5
-                                               font-sans text-[0.58rem] font-semibold tracking-[0.15em] uppercase text-espresso
-                                               hover:bg-espresso hover:text-paper transition-all duration-200 whitespace-nowrap">
-                                        <i class="fas fa-undo text-xs"></i>
-                                        Catat Kembali
-                                    </a>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        @endif
-    </div>
-
-    {{-- ══ TAB: SELESAI ══ --}}
-    <div id="tab-selesai" class="tab-content hidden">
-        @if($peminjamanSelesai->isEmpty())
-            <div class="bg-paper border border-rule p-14 text-center">
-                <div class="w-12 h-12 bg-cream border border-rule flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-check-circle text-ghost text-base"></i>
-                </div>
-                <p class="font-serif text-ink text-lg font-normal mb-1">Belum ada yang selesai</p>
-                <p class="font-sans text-[0.7rem] text-label tracking-wide">Data peminjaman yang selesai akan muncul di sini.</p>
-            </div>
-        @else
-            <div class="bg-paper border border-rule overflow-hidden">
-                <table class="min-w-full">
-                    <thead>
-                        <tr class="border-b border-rule bg-cream">
-                            <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Alat</th>
-                            <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Peminjam</th>
-                            <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Tgl. Pinjam</th>
-                            <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Tgl. Kembali</th>
-                            <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-rule">
-                        @foreach($peminjamanSelesai as $item)
-                            <tr class="hover:bg-cream/40 transition-colors duration-100">
-                                <td class="px-5 py-4 font-sans text-[0.78rem] font-medium text-ink whitespace-nowrap">
-                                    {{ $item->alat->nama_alat }}
-                                </td>
-                                <td class="px-5 py-4 font-sans text-[0.78rem] text-label whitespace-nowrap">
-                                    {{ $item->user->username }}
-                                </td>
-                                <td class="px-5 py-4 font-sans text-[0.78rem] text-label whitespace-nowrap">
-                                    {{ $item->tanggal_peminjaman->format('d M Y') }}
-                                </td>
-                                <td class="px-5 py-4 font-sans text-[0.78rem] text-label whitespace-nowrap">
-                                    —
-                                </td>
-                                <td class="px-5 py-4 whitespace-nowrap">
-                                    <span class="px-2.5 py-1 border border-rule bg-cream font-sans text-[0.52rem] font-semibold tracking-[0.15em] uppercase text-label">
-                                        Dikembalikan
-                                    </span>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        @endif
-    </div>
-
-    <script>
-        function showTab(tab) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-
-            // Reset semua tab button
-            ['menunggu', 'aktif', 'selesai'].forEach(t => {
-                const btn = document.getElementById('btn-' + t);
-                btn.classList.remove('border-espresso', 'text-ink');
-                btn.classList.add('border-transparent', 'text-label');
-
-                // Reset badge warna
-                const badge = btn.querySelector('span:last-child');
-                if (badge) {
-                    badge.classList.remove('bg-espresso', 'text-paper');
-                    badge.classList.add('bg-rule', 'text-label');
-                }
-            });
-
-            // Aktifkan tab yang dipilih
-            document.getElementById('tab-' + tab).classList.remove('hidden');
-            const activeBtn = document.getElementById('btn-' + tab);
-            activeBtn.classList.remove('border-transparent', 'text-label');
-            activeBtn.classList.add('border-espresso', 'text-ink');
-
-            // Aktifkan badge warna
-            const activeBadge = activeBtn.querySelector('span:last-child');
-            if (activeBadge) {
-                activeBadge.classList.remove('bg-rule', 'text-label');
-                activeBadge.classList.add('bg-espresso', 'text-paper');
-            }
-        }
-
-        function approvePeminjaman(id) {
-            if (confirm('Setujui peminjaman ini?')) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '/peminjaman/' + id + '/approve';
-
-                const csrf = document.createElement('input');
-                csrf.type = 'hidden'; csrf.name = '_token';
-                csrf.value = '{{ csrf_token() }}';
-
-                const method = document.createElement('input');
-                method.type = 'hidden'; method.name = '_method';
-                method.value = 'PATCH';
-
-                form.appendChild(csrf);
-                form.appendChild(method);
-                document.body.appendChild(form);
-                form.submit();
-            }
-        }
-
-        function rejectPeminjaman(id) {
-            if (confirm('Tolak peminjaman ini?')) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '/peminjaman/' + id;
-
-                const csrf = document.createElement('input');
-                csrf.type = 'hidden'; csrf.name = '_token';
-                csrf.value = '{{ csrf_token() }}';
-
-                const method = document.createElement('input');
-                method.type = 'hidden'; method.name = '_method';
-                method.value = 'PUT';
-
-                const status = document.createElement('input');
-                status.type = 'hidden'; status.name = 'status';
-                status.value = 'ditolak';
-
-                form.appendChild(csrf);
-                form.appendChild(method);
-                form.appendChild(status);
-                document.body.appendChild(form);
-                form.submit();
-            }
-        }
-    </script>
-
-@endsection
+@endforeach

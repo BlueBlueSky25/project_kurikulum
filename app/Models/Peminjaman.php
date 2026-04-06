@@ -16,7 +16,7 @@ class Peminjaman extends Model
     protected $keyType = 'int';
 
     protected $fillable = [
-        'kode_peminjaman',          // TAMBAH INI
+        'kode_peminjaman',
         'user_id',
         'alat_id',
         'jumlah',
@@ -26,8 +26,8 @@ class Peminjaman extends Model
         'status',
         'disetujui_oleh',
         'tanggal_disetujui',
-        'nama_peminjam_guest',      // TAMBAH INI
-        'telepon_peminjam_guest',   // TAMBAH INI
+        'nama_peminjam_guest',
+        'telepon_peminjam_guest',
     ];
 
     protected $casts = [
@@ -66,6 +66,30 @@ class Peminjaman extends Model
         }
         
         return $kode;
+    }
+
+    // ✅ Helper: Dapatkan nama peminjam (guest atau user)
+    public function getNamaPeminjam()
+    {
+        if ($this->user_id) {
+            return $this->user->username ?? $this->user->nama;
+        }
+        return $this->nama_peminjam_guest ?? '-';
+    }
+
+    // ✅ Helper: Dapatkan telepon peminjam (guest atau user)
+    public function getTeleponPeminjam()
+    {
+        if ($this->user_id) {
+            return $this->user->telepon ?? '-';
+        }
+        return $this->telepon_peminjam_guest ?? '-';
+    }
+
+    // ✅ Helper: Cek apakah peminjaman dari guest atau user
+    public function isGuest()
+    {
+        return $this->user_id === null;
     }
 
     // Relationships

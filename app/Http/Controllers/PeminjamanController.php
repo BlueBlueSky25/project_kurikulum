@@ -60,14 +60,16 @@ class PeminjamanController extends Controller
         $user = auth()->user();
 
         if ($user->role === 'peminjam') {
+            // Peminjam hanya lihat peminjaman miliknya sendiri
             $peminjaman = Peminjaman::where('user_id', $user->user_id)
-                ->with('alat', 'petugas')
+                ->with('alat', 'petugas', 'user')
                 ->latest()
                 ->get();
             return view('pages.peminjaman.index-peminjam', compact('peminjaman'));
         }
 
         if ($user->role === 'petugas') {
+            // Petugas lihat SEMUA peminjaman (termasuk guest)
             $peminjaman = Peminjaman::with('alat', 'user', 'petugas')
                 ->latest()
                 ->paginate(15);
@@ -75,6 +77,7 @@ class PeminjamanController extends Controller
         }
 
         if ($user->role === 'admin') {
+            // Admin lihat SEMUA peminjaman (termasuk guest)
             $peminjaman = Peminjaman::with('alat', 'user', 'petugas')
                 ->latest()
                 ->paginate(15);
