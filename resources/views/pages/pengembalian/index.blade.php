@@ -128,7 +128,9 @@
                     <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label whitespace-nowrap">Telat</th>
                     <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label whitespace-nowrap">Total Denda</th>
                     <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label whitespace-nowrap">Status</th>
-                    <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label whitespace-nowrap">Aksi</th>
+                    @if(auth()->user()->level == 'admin')
+                        <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label whitespace-nowrap">Aksi</th>
+                    @endif
                 </tr>
             </thead>
             <tbody class="divide-y divide-rule">
@@ -204,23 +206,23 @@
                             @endif
                         </td>
 
-                        {{-- Aksi --}}
-                        <td class="px-4 py-4 whitespace-nowrap">
-                            <div class="flex gap-2 items-center">
-                                {{-- ✅ BAYAR LUNAS Button --}}
-                                @if($item->status_denda == 'belum_lunas' && auth()->user()->level == 'admin')
-                                    <button 
-                                        type="button"
-                                        onclick="openBayarModal({{ $item->pengembalian_id }}, '{{ $item->peminjaman->user->username }}', {{ $item->total_denda }})"
-                                        class="px-3 py-2 bg-ink text-paper border border-ink font-sans text-[0.55rem] font-semibold tracking-[0.1em] uppercase
-                                               hover:bg-espresso hover:border-espresso transition-all duration-150 flex items-center gap-1.5">
-                                        <i class="fas fa-check text-xs"></i>
-                                        <span>Bayar Lunas</span>
-                                    </button>
-                                @endif
+                        {{-- ✅ Aksi - HANYA UNTUK ADMIN --}}
+                        @if(auth()->user()->level == 'admin')
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <div class="flex gap-2 items-center">
+                                    {{-- BAYAR LUNAS Button --}}
+                                    @if($item->status_denda == 'belum_lunas')
+                                        <button 
+                                            type="button"
+                                            onclick="openBayarModal({{ $item->pengembalian_id }}, '{{ $item->peminjaman->user->username }}', {{ $item->total_denda }})"
+                                            class="px-3 py-2 bg-ink text-paper border border-ink font-sans text-[0.55rem] font-semibold tracking-[0.1em] uppercase
+                                                   hover:bg-espresso hover:border-espresso transition-all duration-150 flex items-center gap-1.5">
+                                            <i class="fas fa-check text-xs"></i>
+                                            <span>Bayar Lunas</span>
+                                        </button>
+                                    @endif
 
-                                {{-- Hapus Button --}}
-                                @if(auth()->user()->level == 'admin')
+                                    {{-- Hapus Button --}}
                                     <form action="{{ route('pengembalian.destroy', $item->pengembalian_id) }}" method="POST"
                                         class="inline" onsubmit="return confirm('Yakin ingin menghapus data pengembalian ini?')">
                                         @csrf
@@ -232,9 +234,9 @@
                                             <i class="fas fa-trash text-[0.6rem]"></i>
                                         </button>
                                     </form>
-                                @endif
-                            </div>
-                        </td>
+                                </div>
+                            </td>
+                        @endif
 
                     </tr>
                 @empty
