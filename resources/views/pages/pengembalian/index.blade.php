@@ -207,15 +207,15 @@
                         {{-- Aksi --}}
                         <td class="px-4 py-4 whitespace-nowrap">
                             <div class="flex gap-2 items-center">
-                                {{-- Bayar Denda Button (jika belum lunas) --}}
+                                {{-- ✅ BAYAR LUNAS Button --}}
                                 @if($item->status_denda == 'belum_lunas' && auth()->user()->level == 'admin')
                                     <button 
                                         type="button"
-                                        onclick="openBayarModal({{ $item->pengembalian_id }}, {{ $item->total_denda }})"
-                                        class="w-7 h-7 flex items-center justify-center border border-rule text-ghost
-                                            hover:border-ink hover:text-ink transition-all duration-150"
-                                        title="Bayar Denda">
-                                        <i class="fas fa-credit-card text-[0.6rem]"></i>
+                                        onclick="openBayarModal({{ $item->pengembalian_id }}, '{{ $item->peminjaman->user->username }}', {{ $item->total_denda }})"
+                                        class="px-3 py-2 bg-ink text-paper border border-ink font-sans text-[0.55rem] font-semibold tracking-[0.1em] uppercase
+                                               hover:bg-espresso hover:border-espresso transition-all duration-150 flex items-center gap-1.5">
+                                        <i class="fas fa-check text-xs"></i>
+                                        <span>Bayar Lunas</span>
                                     </button>
                                 @endif
 
@@ -414,7 +414,7 @@
         </div>
     </div>
 
-    {{-- ══ MODAL BAYAR DENDA ══ --}}
+    {{-- ✅ MODAL KONFIRMASI BAYAR LUNAS --}}
     <div id="bayarModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4 py-8"
         style="background:rgba(26,23,20,0.55)">
         <div class="relative w-full max-w-md bg-paper border border-rule shadow-2xl flex flex-col animate-fade-up">
@@ -423,10 +423,10 @@
             <div class="flex-shrink-0 flex items-end justify-between px-8 pt-7 pb-5 border-b border-rule">
                 <div>
                     <p class="font-sans text-[0.5rem] font-semibold tracking-[0.35em] uppercase text-label mb-1">
-                        Pembayaran
+                        Konfirmasi
                     </p>
                     <h3 class="font-serif text-ink text-2xl font-normal leading-none">
-                        Bayar Denda
+                        Bayar Lunas
                     </h3>
                 </div>
                 <button onclick="closeBayarModal()"
@@ -436,10 +436,20 @@
             </div>
 
             {{-- Modal Body --}}
-            <form action="{{ route('pengembalian.bayar') }}" method="POST" class="flex flex-col">
+            <form id="formBayar" action="{{ route('pengembalian.bayar') }}" method="POST" class="flex flex-col">
                 @csrf
 
                 <div class="px-8 py-6 space-y-6">
+
+                    {{-- Info Peminjam --}}
+                    <div class="bg-cream border border-rule p-4 rounded">
+                        <p class="font-sans text-[0.7rem] font-semibold tracking-[0.2em] uppercase text-label mb-2">
+                            Peminjam
+                        </p>
+                        <p id="bayar_peminjam" class="font-sans text-[0.9rem] font-bold text-ink">
+                            —
+                        </p>
+                    </div>
 
                     {{-- Total Denda Info --}}
                     <div class="bg-cream border border-rule p-4 rounded">
@@ -451,6 +461,14 @@
                         </p>
                     </div>
 
+                    {{-- Checkbox Konfirmasi --}}
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" id="konfirmasiCheckbox" class="w-4 h-4 cursor-pointer">
+                        <label for="konfirmasiCheckbox" class="font-sans text-[0.75rem] text-label cursor-pointer">
+                            Saya konfirmasi bahwa pembayaran denda telah diterima dan valid ✓
+                        </label>
+                    </div>
+
                     {{-- Hidden Input --}}
                     <input type="hidden" id="pengembalian_id_input" name="pengembalian_id" value="">
 
@@ -458,8 +476,9 @@
 
                 {{-- Modal Footer --}}
                 <div class="flex-shrink-0 flex gap-3 px-8 py-5 border-t border-rule bg-paper">
-                    <button type="submit"
-                        class="flex-1 bg-ink text-paper font-sans text-[0.6rem] font-semibold tracking-[0.25em] uppercase py-3.5 hover:bg-espresso transition-colors duration-200">
+                    <button type="submit" id="submitBayar"
+                        class="flex-1 bg-ink text-paper font-sans text-[0.6rem] font-semibold tracking-[0.25em] uppercase py-3.5 hover:bg-espresso transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled>
                         ✓ Konfirmasi Pembayaran
                     </button>
                     <button type="button" onclick="closeBayarModal()"
@@ -481,15 +500,25 @@
             document.getElementById('pengembalianModal').classList.add('hidden');
         }
 
-        function openBayarModal(pengembalianId, totalDenda) {
+        function openBayarModal(pengembalianId, peminjamName, totalDenda) {
             document.getElementById('pengembalian_id_input').value = pengembalianId;
+            document.getElementById('bayar_peminjam').textContent = peminjamName;
             document.getElementById('bayar_total').textContent = 'Rp ' + formatCurrency(totalDenda);
             document.getElementById('bayarModal').classList.remove('hidden');
+            
+            // Reset checkbox
+            document.getElementById('konfirmasiCheckbox').checked = false;
+            document.getElementById('submitBayar').disabled = true;
         }
 
         function closeBayarModal() {
             document.getElementById('bayarModal').classList.add('hidden');
         }
+
+        // ✅ Enable/Disable submit button based on checkbox
+        document.getElementById('konfirmasiCheckbox').addEventListener('change', function() {
+            document.getElementById('submitBayar').disabled = !this.checked;
+        });
 
         const peminjamanSelect = document.getElementById('peminjaman_select');
         const tanggalKembali = document.getElementById('tanggal_kembali');
