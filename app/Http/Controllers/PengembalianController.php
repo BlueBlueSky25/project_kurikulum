@@ -17,11 +17,9 @@ class PengembalianController extends Controller
     {
         $pengembalian = Pengembalian::with('peminjaman.user', 'peminjaman.alat', 'details')->latest()->get();
         
-        // Summary untuk dashboard
         $totalDenda = $pengembalian->sum('total_denda');
         $dendaBelumLunas = $pengembalian->where('status_denda', 'belum_lunas')->sum('total_denda');
         
-        // Hitung alat rusak dan hilang dari detail
         $alatRusak = PengembalianDetail::where('kondisi_alat', 'rusak')->sum('jumlah');
         $alatHilang = PengembalianDetail::where('kondisi_alat', 'hilang')->sum('jumlah');
         
@@ -69,7 +67,7 @@ class PengembalianController extends Controller
         $jatuhTempo = Carbon::parse($peminjaman->tanggal_kembali_rencana);
         $keterlambatan = max(0, $tanggalKembali->diffInDays($jatuhTempo, false) * -1);
 
-        // ═════════════════════════════════════════════════════════════
+        // ═════════���═══════════════════════════════════════════════════
         // HITUNG DENDA KETERLAMBATAN (Fixed: Rp 50.000/hari)
         // ═════════════════════════════════════════════════════════════
         $tarifDendaHarian = 50000;
@@ -90,10 +88,22 @@ class PengembalianController extends Controller
             $persenDendaRusak,
             $request
         ) {
+            // Tentukan kondisi dominan (prioritas: hilang > rusak > baik)
+            $kondisiDominan = 'baik';
+            foreach ($validated['kondisi_details'] as $detail) {
+                if ($detail['kondisi'] == 'hilang') {
+                    $kondisiDominan = 'hilang';
+                    break;
+                } elseif ($detail['kondisi'] == 'rusak' && $kondisiDominan != 'hilang') {
+                    $kondisiDominan = 'rusak';
+                }
+            }
+
             // Buat record pengembalian utama
             $pengembalian = Pengembalian::create([
                 'peminjaman_id' => $validated['peminjaman_id'],
                 'tanggal_kembali_aktual' => $validated['tanggal_kembali_aktual'],
+                'kondisi_alat' => $kondisiDominan, // ✅ Tambahkan kondisi dominan
                 'keterlambatan_hari' => $keterlambatan,
                 'tarif_denda_per_hari' => $tarifDendaHarian,
                 'denda_keterlambatan' => $dendaKeterlambatan,
