@@ -40,7 +40,7 @@ class PengembalianController extends Controller
             'tanggal_kembali_aktual' => 'required|date',
             'kondisi_details' => 'required|array',
             'kondisi_details.*.kondisi' => 'required|in:baik,rusak,hilang',
-            'kondisi_details.*.jumlah' => 'required|integer|min:0', // ✅ Changed: min:0 instead of min:1
+            'kondisi_details.*.jumlah' => 'required|integer|min:0',
             'keterangan' => 'nullable|string',
         ]);
 
@@ -81,7 +81,6 @@ class PengembalianController extends Controller
 
         $persenDendaRusak = $alat->persen_denda_rusak ?? 30;
 
-        // ✅ FIXED: Add $validated to use()
         DB::transaction(function () use (
             $validated,
             $kondisiDetails,
@@ -106,6 +105,8 @@ class PengembalianController extends Controller
 
             $totalDendaBarang = 0;
             $jumlahBaik = 0;
+            $jumlahRusak = 0;
+            $jumlahHilang = 0;
 
             foreach ($kondisiDetails as $detail) {
                 $kondisi = $detail['kondisi'];
@@ -117,8 +118,10 @@ class PengembalianController extends Controller
                     $jumlahBaik += $jumlah;
                 } elseif ($kondisi == 'rusak') {
                     $dendaDetail = ($alat->harga_alat * ($persenDendaRusak / 100)) * $jumlah;
+                    $jumlahRusak += $jumlah;
                 } elseif ($kondisi == 'hilang') {
                     $dendaDetail = $alat->harga_alat * $jumlah;
+                    $jumlahHilang += $jumlah;
                 }
 
                 PengembalianDetail::create([
@@ -141,10 +144,18 @@ class PengembalianController extends Controller
 
             $peminjaman->update(['status' => 'dikembalikan']);
 
+            // ✅ UPDATED: Hanya barang yang BAIK yang ditambah ke stok tersedia
             if ($jumlahBaik > 0) {
                 $alat->increment('stok_tersedia', $jumlahBaik);
             }
 
+            // ✅ NEW: Kurangi stok tersedia untuk barang RUSAK & HILANG
+            $barangTakLayak = $jumlahRusak + $jumlahHilang;
+            if ($barangTakLayak > 0) {
+                $alat->decrement('stok_tersedia', $barangTakLayak);
+            }
+
+            // ✅ Update kondisi alat jika ada rusak atau hilang
             $hasRusakOrHilang = collect($kondisiDetails)
                 ->whereIn('kondisi', ['rusak', 'hilang'])
                 ->isNotEmpty();
