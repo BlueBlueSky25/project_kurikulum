@@ -25,6 +25,13 @@
         </div>
     @endif
 
+    {{-- ══ CALCULATE STATISTICS ══ --}}
+    @php
+        $peminjamanMenunggu = $allPeminjaman->filter(fn($p) => $p->status === 'menunggu');
+        $peminjamanAktif = $allPeminjaman->filter(fn($p) => $p->status === 'disetujui');
+        $peminjamanSelesai = $allPeminjaman->filter(fn($p) => $p->status === 'dikembalikan');
+    @endphp
+
     {{-- ══ SUMMARY CARDS ══ --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
 
@@ -32,12 +39,7 @@
             <div class="flex items-start justify-between gap-3">
                 <div>
                     <p class="font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label mb-2">Menunggu Persetujuan</p>
-                    <p class="font-serif text-[1.9rem] font-normal leading-none text-ink">
-                        @php
-                            $peminjamanMenunggu = $peminjaman->filter(fn($p) => $p->status === 'menunggu');
-                        @endphp
-                        {{ $peminjamanMenunggu->count() }}
-                    </p>
+                    <p class="font-serif text-[1.9rem] font-normal leading-none text-ink">{{ $peminjamanMenunggu->count() }}</p>
                 </div>
                 <div class="w-10 h-10 bg-dim flex items-center justify-center flex-shrink-0">
                     <i class="fas fa-clock text-xs text-paper"></i>
@@ -50,12 +52,7 @@
             <div class="flex items-start justify-between gap-3">
                 <div>
                     <p class="font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label mb-2">Sedang Dipinjam</p>
-                    <p class="font-serif text-[1.9rem] font-normal leading-none text-ink">
-                        @php
-                            $peminjamanAktif = $peminjaman->filter(fn($p) => $p->status === 'disetujui');
-                        @endphp
-                        {{ $peminjamanAktif->count() }}
-                    </p>
+                    <p class="font-serif text-[1.9rem] font-normal leading-none text-ink">{{ $peminjamanAktif->count() }}</p>
                 </div>
                 <div class="w-10 h-10 bg-espresso flex items-center justify-center flex-shrink-0">
                     <i class="fas fa-check-circle text-xs text-paper"></i>
@@ -68,12 +65,7 @@
             <div class="flex items-start justify-between gap-3">
                 <div>
                     <p class="font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label mb-2">Sudah Dikembalikan</p>
-                    <p class="font-serif text-[1.9rem] font-normal leading-none text-ink">
-                        @php
-                            $peminjamanSelesai = $peminjaman->filter(fn($p) => $p->status === 'dikembalikan');
-                        @endphp
-                        {{ $peminjamanSelesai->count() }}
-                    </p>
+                    <p class="font-serif text-[1.9rem] font-normal leading-none text-ink">{{ $peminjamanSelesai->count() }}</p>
                 </div>
                 <div class="w-10 h-10 bg-ghost flex items-center justify-center flex-shrink-0">
                     <i class="fas fa-undo-alt text-xs text-paper"></i>
@@ -171,7 +163,7 @@
                                     <p class="font-sans text-[0.78rem] font-medium text-ink">{{ $item->tanggal_peminjaman->format('d M Y') }}</p>
                                 </div>
                                 <div class="bg-cream px-3 py-2 col-span-2">
-                                    <p class="font-sans text-[0.5rem] font-semibold tracking-[0.2em] uppercase text-ghost mb-1">Tgl. Kembali Rencana</p>
+                                    <p class="font-sans text-[0.5rem] font-semibold tracking-[0.2em] uppercase text-ghost mb-1">Tgl. Kembali</p>
                                     <p class="font-sans text-[0.78rem] font-medium text-ink">{{ $item->tanggal_kembali_rencana->format('d M Y') }}</p>
                                 </div>
                             </div>
@@ -232,7 +224,7 @@
                     <i class="fas fa-inbox text-ghost text-base"></i>
                 </div>
                 <p class="font-serif text-ink text-lg font-normal mb-1">Tidak ada alat dipinjam</p>
-                <p class="font-sans text-[0.7rem] text-label tracking-wide">Semua alat sedang tersedia di tempat.</p>
+                <p class="font-sans text-[0.7rem] text-label tracking-wide">Semua alat sedang tersedia.</p>
             </div>
         @else
             <div class="bg-paper border border-rule overflow-hidden">
@@ -318,7 +310,7 @@
         @endif
     </div>
 
-    {{-- ══ TAB: SELESAI ═��� --}}
+    {{-- ══ TAB: SELESAI ══ --}}
     <div id="tab-selesai" class="tab-content hidden">
         @if($peminjamanSelesai->isEmpty())
             <div class="bg-paper border border-rule p-14 text-center">
