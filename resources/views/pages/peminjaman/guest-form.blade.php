@@ -501,213 +501,185 @@
 
 
     <script>
-        document.getElementById('alat_select').addEventListener('change', function() {
-            const selected = this.options[this.selectedIndex];
-            const maxStok = selected.getAttribute('data-max');
-            const jumlahInput = document.getElementById('jumlah_input');
-            const stokInfo = document.getElementById('stok_info');
-
-            if (maxStok) {
-                jumlahInput.max = maxStok;
-                stokInfo.textContent = 'Maksimal: ' + maxStok + ' unit tersedia';
-            } else {
-                jumlahInput.max = '';
-                stokInfo.textContent = '';
-            }
-        });
-
-        // Validasi tanggal kembali
-        const tanggalPeminjamanInput = document.querySelector('input[name="tanggal_peminjaman"]');
-        const tanggalKembaliInput = document.querySelector('input[name="tanggal_kembali_rencana"]');
-
-        tanggalPeminjamanInput.addEventListener('change', function() {
-            tanggalKembaliInput.min = this.value;
-        });
-
-
-
-
-
-
         const qrScannerInput = document.getElementById('qr_scanner_input');
-const qrStatus = document.getElementById('qr_status');
-const alatTerpilih = document.getElementById('alat_terpilih');
-const alatIdInput = document.getElementById('alat_id_input');
+        const qrStatus = document.getElementById('qr_status');
+        const alatTerpilih = document.getElementById('alat_terpilih');
+        const alatIdInput = document.getElementById('alat_id_input');
 
-let video = null;
-let canvas = null;
-let stream = null;
-let isScanning = false;
+        let video = null;
+        let canvas = null;
+        let stream = null;
+        let isScanning = false;
 
-// Start scanning saat input di-focus
-qrScannerInput.addEventListener('focus', function(e) {
-    e.preventDefault();
-    startCamera();
-});
+        // Start scanning saat input di-focus
+        qrScannerInput.addEventListener('focus', function(e) {
+            e.preventDefault();
+            startCamera();
+        });
 
-function startCamera() {
-    if (isScanning || video) return;
-    
-    isScanning = true;
+        function startCamera() {
+            if (isScanning || video) return;
+            
+            isScanning = true;
 
-    // Buat video element
-    video = document.createElement('video');
-    video.setAttribute('id', 'qr_video');
-    video.setAttribute('style', 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;object-fit:cover;');
-    document.body.appendChild(video);
+            // Buat video element
+            video = document.createElement('video');
+            video.setAttribute('id', 'qr_video');
+            video.setAttribute('style', 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;object-fit:cover;');
+            document.body.appendChild(video);
 
-    // Buat close button
-    const closeBtn = document.createElement('button');
-    closeBtn.innerHTML = '✕ Tutup Kamera';
-    closeBtn.setAttribute('type', 'button');
-    closeBtn.setAttribute('style', 'position:fixed;top:20px;right:20px;z-index:10000;padding:10px 20px;background:#1c1917;color:#fffdf9;border:none;cursor:pointer;font-weight:bold;border-radius:5px;');
-    closeBtn.addEventListener('click', function() {
-        stopCamera();
-    });
-    document.body.appendChild(closeBtn);
+            // Buat close button
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '✕ Tutup Kamera';
+            closeBtn.setAttribute('type', 'button');
+            closeBtn.setAttribute('style', 'position:fixed;top:20px;right:20px;z-index:10000;padding:10px 20px;background:#1c1917;color:#fffdf9;border:none;cursor:pointer;font-weight:bold;border-radius:5px;');
+            closeBtn.addEventListener('click', function() {
+                stopCamera();
+            });
+            document.body.appendChild(closeBtn);
 
-    // Buat canvas element
-    canvas = document.createElement('canvas');
-    canvas.setAttribute('id', 'qr_canvas');
-    canvas.setAttribute('style', 'display:none;');
-    document.body.appendChild(canvas);
+            // Buat canvas element
+            canvas = document.createElement('canvas');
+            canvas.setAttribute('id', 'qr_canvas');
+            canvas.setAttribute('style', 'display:none;');
+            document.body.appendChild(canvas);
 
-    // Request camera access
-    navigator.mediaDevices.getUserMedia({ 
-        video: { 
-            facingMode: 'environment',
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-        } 
-    }).then(function(s) {
-        stream = s;
-        video.srcObject = stream;
-        video.setAttribute('autoplay', 'true');
-        video.setAttribute('playsinline', 'true');
-        video.play();
+            // Request camera access
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: 'environment',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                } 
+            }).then(function(s) {
+                stream = s;
+                video.srcObject = stream;
+                video.setAttribute('autoplay', 'true');
+                video.setAttribute('playsinline', 'true');
+                video.play();
 
-        qrStatus.textContent = '📹 Arahkan kamera ke QR code...';
-        qrStatus.style.color = '#1c1917';
+                qrStatus.textContent = '📹 Arahkan kamera ke QR code...';
+                qrStatus.style.color = '#1c1917';
 
-        // Tunggu video siap
-        setTimeout(() => {
-            scanQrCode();
-        }, 500);
-    }).catch(function(err) {
-        console.error('Camera error:', err);
-        qrStatus.textContent = '❌ Error: ' + err.message;
-        qrStatus.style.color = '#b23d3d';
-        isScanning = false;
-        closeBtn.remove();
-    });
-}
-
-function scanQrCode() {
-    if (!video || !canvas || !isScanning) return;
-
-    const ctx = canvas.getContext('2d');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    if (canvas.width === 0 || canvas.height === 0) {
-        requestAnimationFrame(scanQrCode);
-        return;
-    }
-
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const code = jsQR(imageData.data, imageData.width, imageData.height);
-
-    if (code) {
-        console.log('QR Detected:', code.data);
-        stopCamera();
-        processQrData(code.data);
-    } else {
-        requestAnimationFrame(scanQrCode);
-    }
-}
-
-function processQrData(qrData) {
-    console.log('Processing QR Data:', qrData);
-    
-    fetch('/api/scan-qr', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({
-            qr_data: qrData
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Response:', data);
-        
-        if (data.success) {
-            // Display barang yang ter-scan
-            document.getElementById('alat_nama').textContent = data.alat.nama_alat;
-            document.getElementById('alat_unit').textContent = data.alat.nomor_unit || '—';
-            document.getElementById('alat_stok').textContent = data.alat.stok_tersedia + ' unit';
-            document.getElementById('alat_harga').textContent = 'Rp ' + formatCurrency(data.alat.harga_alat);
-
-            alatIdInput.value = data.alat.alat_id;
-            alatTerpilih.style.display = 'block';
-
-            qrStatus.textContent = '✓ Barang terdeteksi!';
-            qrStatus.style.color = '#1c1917';
-
-            // Update jumlah maksimal
-            document.getElementById('jumlah_input').max = data.alat.stok_tersedia;
-            document.getElementById('stok_info').textContent = 'Maksimal: ' + data.alat.stok_tersedia + ' unit tersedia';
-
-        } else {
-            qrStatus.textContent = '❌ ' + data.message;
-            qrStatus.style.color = '#b23d3d';
+                // Tunggu video siap
+                setTimeout(() => {
+                    scanQrCode();
+                }, 500);
+            }).catch(function(err) {
+                console.error('Camera error:', err);
+                qrStatus.textContent = '❌ Error: ' + err.message;
+                qrStatus.style.color = '#b23d3d';
+                isScanning = false;
+                closeBtn.remove();
+            });
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        qrStatus.textContent = '❌ Error: ' + error.message;
-        qrStatus.style.color = '#b23d3d';
-    });
-}
 
-function stopCamera() {
-    isScanning = false;
-    if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-        stream = null;
-    }
-    if (video) {
-        video.remove();
-        video = null;
-    }
-    if (canvas) {
-        canvas.remove();
-        canvas = null;
-    }
-    
-    // Hapus close button
-    const closeBtn = document.querySelector('button[style*="position:fixed"]');
-    if (closeBtn) closeBtn.remove();
-}
+        function scanQrCode() {
+            if (!video || !canvas || !isScanning) return;
 
-function clearQrScan() {
-    stopCamera();
-    alatIdInput.value = '';
-    alatTerpilih.style.display = 'none';
-    qrStatus.textContent = '';
-    qrScannerInput.value = '';
-}
+            const ctx = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
 
-function formatCurrency(value) {
-    return new Intl.NumberFormat('id-ID').format(value);
-}
+            if (canvas.width === 0 || canvas.height === 0) {
+                requestAnimationFrame(scanQrCode);
+                return;
+            }
 
-// Cleanup saat halaman ditutup
-window.addEventListener('beforeunload', stopCamera);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+            if (code) {
+                console.log('QR Detected:', code.data);
+                stopCamera();
+                processQrData(code.data);
+            } else {
+                requestAnimationFrame(scanQrCode);
+            }
+        }
+
+        function processQrData(qrData) {
+            console.log('Processing QR Data:', qrData);
+            
+            fetch('/api/scan-qr', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({
+                    qr_data: qrData
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response:', data);
+                
+                if (data.success) {
+                    // Display barang yang ter-scan
+                    document.getElementById('alat_nama').textContent = data.alat.nama_alat;
+                    document.getElementById('alat_unit').textContent = data.alat.nomor_unit || '—';
+                    document.getElementById('alat_stok').textContent = data.alat.stok_tersedia + ' unit';
+                    document.getElementById('alat_harga').textContent = 'Rp ' + formatCurrency(data.alat.harga_alat);
+
+                    alatIdInput.value = data.alat.alat_id;
+                    alatTerpilih.style.display = 'block';
+
+                    qrStatus.textContent = '✓ Barang terdeteksi!';
+                    qrStatus.style.color = '#1c1917';
+
+                    // Update jumlah maksimal
+                    document.getElementById('jumlah_input').max = data.alat.stok_tersedia;
+                    document.getElementById('stok_info').textContent = 'Maksimal: ' + data.alat.stok_tersedia + ' unit tersedia';
+
+                } else {
+                    qrStatus.textContent = '❌ ' + data.message;
+                    qrStatus.style.color = '#b23d3d';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                qrStatus.textContent = '❌ Error: ' + error.message;
+                qrStatus.style.color = '#b23d3d';
+            });
+        }
+
+        function stopCamera() {
+            isScanning = false;
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            if (video) {
+                video.remove();
+                video = null;
+            }
+            if (canvas) {
+                canvas.remove();
+                canvas = null;
+            }
+            
+            // Hapus close button
+            const closeBtn = document.querySelector('button[style*="position:fixed"]');
+            if (closeBtn) closeBtn.remove();
+        }
+
+        function clearQrScan() {
+            stopCamera();
+            alatIdInput.value = '';
+            alatTerpilih.style.display = 'none';
+            qrStatus.textContent = '';
+            qrScannerInput.value = '';
+        }
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('id-ID').format(value);
+        }
+
+        // Cleanup saat halaman ditutup
+        window.addEventListener('beforeunload', stopCamera);
     </script>
 
 </body>
