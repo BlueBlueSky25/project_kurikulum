@@ -125,7 +125,6 @@
                     <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label whitespace-nowrap">Alat</th>
                     <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label whitespace-nowrap">Tgl. Kembali</th>
                     <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label whitespace-nowrap">Detail Kondisi</th>
-                    <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label whitespace-nowrap">Telat</th>
                     <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label whitespace-nowrap">Total Denda</th>
                     <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label whitespace-nowrap">Status</th>
                     @if(auth()->check() && auth()->user()->level == 'admin')
@@ -173,18 +172,6 @@
                             </div>
                         </td>
 
-                        {{-- Keterlambatan --}}
-                        <td class="px-4 py-4 whitespace-nowrap">
-                            @if($item->keterlambatan_hari > 0)
-                                <span class="font-sans text-[0.75rem] font-semibold text-espresso">
-                                    {{ $item->keterlambatan_hari }} hari
-                                </span>
-                            @else
-                                <span class="font-sans text-[0.75rem] text-label">
-                                    Tepat waktu
-                                </span>
-                            @endif
-                        </td>
 
                         {{-- Total Denda --}}
                         <td class="px-4 py-4 whitespace-nowrap">
@@ -358,18 +345,7 @@
                             <p class="font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-3">
                                 📊 Breakdown Denda
                             </p>
-                            
-                            {{-- Keterlambatan --}}
-                            <div class="flex justify-between items-center mb-2 pb-2 border-b border-rule">
-                                <span class="font-sans text-[0.75rem] text-label">
-                                    Keterlambatan:
-                                    <span id="hari_telat" class="font-semibold text-ink">0 hari</span>
-                                    × Rp 50.000/hari
-                                </span>
-                                <span id="denda_hari" class="font-sans text-[0.8rem] font-semibold text-ink">
-                                    Rp 0
-                                </span>
-                            </div>
+                
 
                             {{-- Barang (Conditional) --}}
                             <div id="dendaBarangSection" style="display: none;">
@@ -603,9 +579,8 @@
         // Hitung Denda
         function hitungDenda() {
             const selected = peminjamanSelect.options[peminjamanSelect.selectedIndex];
-            const jatuhTempo = selected.getAttribute('data-jatuh-tempo');
             
-            if (!jatuhTempo || !tanggalKembali.value) {
+            if (!selected.value) {
                 dendaBreakdown.style.display = 'none';
                 return;
             }
@@ -615,27 +590,8 @@
             const alat = selected.getAttribute('data-alat');
             infoPeminjaman.textContent = user + ' — ' + alat;
 
-            // Hitung keterlambatan
-            const tempo = new Date(jatuhTempo);
-            const kembali = new Date(tanggalKembali.value);
-            const keterlambatan = Math.max(0, Math.ceil((kembali - tempo) / (1000 * 60 * 60 * 24)));
-
-            // Denda keterlambatan
-            const tarifDendaHarian = 50000;
-            const dendaKeterlambatan = keterlambatan * tarifDendaHarian;
-
-            // Info keterlambatan
-            if (keterlambatan > 0) {
-                infoKeterlambatan.innerHTML = `
-                    <span style="color:#1c1917;font-weight:600;">
-                        Terlambat ${keterlambatan} hari · 
-                        Denda: Rp ${formatCurrency(dendaKeterlambatan)}
-                    </span>
-                `;
-            } else {
-                infoKeterlambatan.innerHTML = '<span style="color:#6e665e;">Tepat waktu</span>';
-            }
-
+            // ✅ HAPUS perhitungan keterlambatan, langsung hitung denda barang
+            
             // Hitung denda barang
             let totalDendaBarang = 0;
             let dendaDetailListHTML = '';
@@ -671,12 +627,10 @@
                 }
             });
 
-            // Total denda
-            const totalDenda = dendaKeterlambatan + totalDendaBarang;
+            // ✅ Total denda = HANYA denda barang
+            const totalDenda = totalDendaBarang;
 
             // Update display
-            document.getElementById('hari_telat').textContent = keterlambatan + ' hari';
-            document.getElementById('denda_hari').textContent = 'Rp ' + formatCurrency(dendaKeterlambatan);
             document.getElementById('denda_barang').textContent = 'Rp ' + formatCurrency(totalDendaBarang);
             document.getElementById('dendaDetailList').innerHTML = dendaDetailListHTML;
             document.getElementById('total_denda').textContent = 'Rp ' + formatCurrency(totalDenda);

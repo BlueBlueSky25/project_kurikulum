@@ -17,9 +17,6 @@ class Pengembalian extends Model
     protected $fillable = [
         'peminjaman_id',
         'tanggal_kembali_aktual',
-        'keterlambatan_hari',
-        'tarif_denda_per_hari',
-        'denda_keterlambatan',
         'total_denda',
         'status_denda',
         'keterangan',
