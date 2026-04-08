@@ -20,6 +20,7 @@ class Peminjaman extends Model
         'user_id',
         'alat_id',
         'jumlah',
+        'kelas',
         'tanggal_peminjaman',
         'tanggal_kembali_rencana',
         'tujuan_peminjaman',

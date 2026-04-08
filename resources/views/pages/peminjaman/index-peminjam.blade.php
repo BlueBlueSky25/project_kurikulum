@@ -72,6 +72,34 @@
                         @enderror
                     </div>
 
+                    {{-- Kelas --}}
+                    <div>
+                        <label class="block font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-2.5">
+                            Kelas <span class="text-espresso">*</span>
+                        </label>
+                        <div class="relative">
+                            <select
+                                name="kelas" id="kelas_select" required
+                                class="w-full appearance-none bg-cream border border-rule px-3 py-2.5 font-sans text-[0.82rem] text-ink outline-none focus:border-ink transition-colors duration-200 cursor-pointer"
+                            >
+                                <option value="">Pilih Kelas</option>
+                                <option value="10-A">10-A</option>
+                                <option value="10-B">10-B</option>
+                                <option value="10-C">10-C</option>
+                                <option value="11-A">11-A</option>
+                                <option value="11-B">11-B</option>
+                                <option value="11-C">11-C</option>
+                                <option value="12-A">12-A</option>
+                                <option value="12-B">12-B</option>
+                                <option value="12-C">12-C</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-ghost text-[0.55rem] pointer-events-none"></i>
+                        </div>
+                        @error('kelas')
+                            <p class="font-sans text-[0.65rem] text-espresso mt-1.5">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     {{-- Jumlah --}}
                     <div class="relative">
                         <label class="block font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-2.5">

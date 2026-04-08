@@ -27,6 +27,7 @@ class PeminjamanController extends Controller
             'tanggal_peminjaman' => 'required|date|after_or_equal:today',
             'tanggal_kembali_rencana' => 'required|date|after:tanggal_peminjaman',
             'tujuan_peminjaman' => 'nullable|string',
+            'kelas' => 'required|string|max:50',
         ]);
 
         $alat = Alat::find($validated['alat_id']);
@@ -44,6 +45,7 @@ class PeminjamanController extends Controller
             'tanggal_peminjaman' => $validated['tanggal_peminjaman'],
             'tanggal_kembali_rencana' => $validated['tanggal_kembali_rencana'],
             'tujuan_peminjaman' => $validated['tujuan_peminjaman'] ?? null,
+            'kelas' => $validated['kelas'],
             'status' => 'menunggu',
             'disetujui_oleh' => null,
         ]);
@@ -88,6 +90,7 @@ class PeminjamanController extends Controller
             'tanggal_peminjaman' => 'required|date',
             'tanggal_kembali_rencana' => 'required|date|after:tanggal_peminjaman',
             'tujuan_peminjaman' => 'nullable|string',
+            'kelas' => 'required|string|max:50',
         ]);
 
         $alat = Alat::find($validated['alat_id']);
@@ -103,6 +106,7 @@ class PeminjamanController extends Controller
             'tanggal_peminjaman' => $validated['tanggal_peminjaman'],
             'tanggal_kembali_rencana' => $validated['tanggal_kembali_rencana'],
             'tujuan_peminjaman' => $validated['tujuan_peminjaman'] ?? null,
+            'kelas' => $validated['kelas'],
             'status' => 'menunggu',
         ]);
 
