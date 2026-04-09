@@ -94,7 +94,7 @@
         </table>
     </div>
 
-    <script>
+        <script>
         function generateQr(alatId) {
             const btn = document.getElementById(`btn-generate-${alatId}`);
             btn.disabled = true;
@@ -143,51 +143,62 @@
             }
 
             const printWindow = window.open('', '', 'width=400,height=500');
-            printWindow.document.write(`
+            const htmlContent = `
                 <html>
-                <head>
-                    <title>Print QR Code</title>
-                    <style>
-                        body { 
-                            font-family: Arial, sans-serif;
-                            display: flex;
-                            flex-direction: column;
-                            align-items: center;
-                            padding: 20px;
-                        }
-                        .sticker {
-                            width: 200px;
-                            text-align: center;
-                            border: 2px dashed #000;
-                            padding: 10px;
-                            margin-bottom: 10px;
-                        }
-                        img { width: 150px; }
-                        p { margin: 5px 0; font-size: 12px; font-weight: bold; }
-                    </style>
-                </head>
-                <body>
-                    <div class="sticker">
-                        <img src="${qrBase64}" />
-                        <p>${namaAlat}</p>
-                        <p>${nomorUnit}</p>
-                    </div>
-                    <script>
-                        window.print();
-                        window.close();
-                    </script>
-                </body>
+                    <head>
+                        <title>Print QR Code</title>
+                        <style>
+                            body { 
+                                font-family: Arial, sans-serif;
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                padding: 20px;
+                            }
+                            .sticker {
+                                width: 200px;
+                                text-align: center;
+                                border: 2px dashed #000;
+                                padding: 10px;
+                                margin-bottom: 10px;
+                            }
+                            img { width: 150px; }
+                            p { margin: 5px 0; font-size: 12px; font-weight: bold; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="sticker">
+                            <img src="${qrBase64}" alt="QR Code" />
+                            <p>${namaAlat}</p>
+                            <p>${nomorUnit}</p>
+                        </div>
+                    </body>
                 </html>
-            `);
+            `;
+            
+            printWindow.document.write(htmlContent);
+            printWindow.document.close();
+            
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 250);
         }
 
         function showAlert(type, message) {
-            const bgColor = type === 'success' ? 'bg-green-100 border-green-400 text-green-700' : 'bg-red-100 border-red-400 text-red-700';
+            const bgColor = type === 'success' 
+                ? 'bg-green-100 border-green-400 text-green-700' 
+                : 'bg-red-100 border-red-400 text-red-700';
+            
             const alertHtml = `<div class="mb-6 px-4 py-3 ${bgColor} border rounded">${message}</div>`;
             
             const alertDiv = document.createElement('div');
             alertDiv.innerHTML = alertHtml;
-            document.querySelector('.mb-8').insertAdjacentElement('afterend', alertDiv);
+            
+            const container = document.querySelector('.mb-8');
+            if (container) {
+                container.insertAdjacentElement('afterend', alertDiv);
+            }
 
             setTimeout(() => alertDiv.remove(), 4000);
         }
