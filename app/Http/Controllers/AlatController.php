@@ -3,18 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Alat;
+use App\Models\AlatUnit;
 use App\Models\Kategori;
 use App\Models\PengembalianDetail;
 use App\Models\Peminjaman;
 use App\Models\LogAktivitas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AlatController extends Controller
 {
     public function index()
     {
-        $alats = Alat::with('kategori')->get();
+        $alats = Alat::with('kategori', 'units')->get();
         
         // ✅ Count barang kondisi per alat dari pengembalian_detail
         $alatStats = [];
@@ -68,14 +70,27 @@ class AlatController extends Controller
 
         $validated['stok_tersedia'] = $validated['stok_total'];
 
-        $alat = Alat::create($validated);
+        // ✅ UPDATED: Buat alat + auto-create units
+        DB::transaction(function () use ($validated) {
+            $alat = Alat::create($validated);
 
-        LogAktivitas::create([
-            'user_id' => Auth::id(),
-            'aktivitas' => 'Tambah Alat',
-            'modul' => 'Alat',
-            'timestamp' => now(),
-        ]);
+            // Auto-create units untuk setiap stok_total
+            for ($i = 1; $i <= $validated['stok_total']; $i++) {
+                AlatUnit::create([
+                    'alat_id' => $alat->alat_id,
+                    'unit_number' => $i,
+                    'qr_code' => null,
+                    'status' => 'baik',
+                ]);
+            }
+
+            LogAktivitas::create([
+                'user_id' => Auth::id(),
+                'aktivitas' => 'Tambah Alat',
+                'modul' => 'Alat',
+                'timestamp' => now(),
+            ]);
+        });
 
         return redirect()->route('alat.index')->with('success', 'Alat berhasil ditambahkan!');
     }
@@ -100,28 +115,56 @@ class AlatController extends Controller
             'persen_denda_rusak' => 'required|integer|min:0|max:100',
         ]);
 
-        $alat->update($validated);
+        // ✅ UPDATED: Handle perubahan stok_total dengan manage units
+        DB::transaction(function () use ($alat, $validated) {
+            $oldStokTotal = $alat->stok_total;
+            $newStokTotal = $validated['stok_total'];
 
-        LogAktivitas::create([
-            'user_id' => Auth::id(),
-            'aktivitas' => 'Update Alat',
-            'modul' => 'Alat',
-            'timestamp' => now(),
-        ]);
+            $alat->update($validated);
+
+            // Jika stok_total berubah, update units
+            if ($newStokTotal > $oldStokTotal) {
+                // Tambah unit baru
+                for ($i = $oldStokTotal + 1; $i <= $newStokTotal; $i++) {
+                    AlatUnit::create([
+                        'alat_id' => $alat->alat_id,
+                        'unit_number' => $i,
+                        'qr_code' => null,
+                        'status' => 'baik',
+                    ]);
+                }
+            } else if ($newStokTotal < $oldStokTotal) {
+                // Hapus unit dari yang terakhir (yang nomor unitnya lebih tinggi)
+                AlatUnit::where('alat_id', $alat->alat_id)
+                    ->where('unit_number', '>', $newStokTotal)
+                    ->delete();
+            }
+
+            LogAktivitas::create([
+                'user_id' => Auth::id(),
+                'aktivitas' => 'Update Alat',
+                'modul' => 'Alat',
+                'timestamp' => now(),
+            ]);
+        });
 
         return redirect()->route('alat.index')->with('success', 'Alat berhasil diupdate!');
     }
 
     public function destroy(Alat $alat)
     {
-        $alat->delete();
+        // ✅ UPDATED: Cascade delete units juga (handled by DB constraint)
+        DB::transaction(function () use ($alat) {
+            $alat->delete();
+            // Units auto-delete karena foreign key ON DELETE CASCADE
 
-        LogAktivitas::create([
-            'user_id' => Auth::id(),
-            'aktivitas' => 'Hapus Alat',
-            'modul' => 'Alat',
-            'timestamp' => now(),
-        ]);
+            LogAktivitas::create([
+                'user_id' => Auth::id(),
+                'aktivitas' => 'Hapus Alat',
+                'modul' => 'Alat',
+                'timestamp' => now(),
+            ]);
+        });
 
         return redirect()->route('alat.index')->with('success', 'Alat berhasil dihapus!');
     }
