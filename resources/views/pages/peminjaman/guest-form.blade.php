@@ -600,7 +600,7 @@
             }
         }
 
-        function processQrData(qrData) {
+                function processQrData(qrData) {
             console.log('Processing QR Data:', qrData);
             
             fetch('/api/scan-qr', {
@@ -618,21 +618,36 @@
                 console.log('Response:', data);
                 
                 if (data.success) {
+                    const alat = data.alat;
+                    
                     // Display barang yang ter-scan
-                    document.getElementById('alat_nama').textContent = data.alat.nama_alat;
-                    document.getElementById('alat_unit').textContent = data.alat.nomor_unit || '—';
-                    document.getElementById('alat_stok').textContent = data.alat.stok_tersedia + ' unit';
-                    document.getElementById('alat_harga').textContent = 'Rp ' + formatCurrency(data.alat.harga_alat);
+                    document.getElementById('alat_nama').textContent = alat.nama_alat;
+                    
+                    // ✅ FIXED: Handle unit display
+                    const unitText = alat.unit_number 
+                        ? `Unit ${alat.unit_number}` 
+                        : (alat.nomor_unit || '—');
+                    document.getElementById('alat_unit').textContent = unitText;
+                    
+                    // ✅ FIXED: Handle stok display
+                    const stokTersedia = alat.stok_tersedia || 0;
+                    document.getElementById('alat_stok').textContent = stokTersedia + ' unit';
+                    
+                    // ✅ FIXED: Handle harga display
+                    const harga = parseFloat(alat.harga_alat) || 0;
+                    document.getElementById('alat_harga').textContent = 'Rp ' + formatCurrency(harga);
 
-                    alatIdInput.value = data.alat.alat_id;
+                    alatIdInput.value = alat.alat_id;
                     alatTerpilih.style.display = 'block';
 
                     qrStatus.textContent = '✓ Barang terdeteksi!';
                     qrStatus.style.color = '#1c1917';
 
-                    // Update jumlah maksimal
-                    document.getElementById('jumlah_input').max = data.alat.stok_tersedia;
-                    document.getElementById('stok_info').textContent = 'Maksimal: ' + data.alat.stok_tersedia + ' unit tersedia';
+                    // ✅ FIXED: Update jumlah maksimal dengan stok yang benar
+                    const maxJumlah = Math.max(stokTersedia, 1);
+                    document.getElementById('jumlah_input').max = maxJumlah;
+                    document.getElementById('jumlah_input').value = 1;
+                    document.getElementById('stok_info').textContent = 'Maksimal: ' + maxJumlah + ' unit tersedia';
 
                 } else {
                     qrStatus.textContent = '❌ ' + data.message;

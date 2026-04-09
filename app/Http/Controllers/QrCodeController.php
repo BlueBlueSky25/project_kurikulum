@@ -315,7 +315,7 @@ class QrCodeController extends Controller
         ';
     }
 
-    // API: Scan QR dan return alat data
+       // API: Scan QR dan return alat data
     public function scanQr(Request $request)
     {
         $validated = $request->validate([
@@ -324,26 +324,46 @@ class QrCodeController extends Controller
 
         $data = json_decode($validated['qr_data'], true);
 
+        // ✅ UPDATED: Cari dari alat_units dulu
         $alatUnit = AlatUnit::find($data['alat_unit_id'] ?? null);
         
-        if (!$alatUnit) {
+        if ($alatUnit) {
+            // Jika dapat unit spesifik
+            $alat = $alatUnit->alat;
+            
             return response()->json([
-                'success' => false,
-                'message' => 'Unit alat tidak ditemukan'
-            ], 404);
+                'success' => true,
+                'alat' => [
+                    'alat_unit_id' => $alatUnit->id,
+                    'alat_id' => $alat->alat_id,
+                    'nama_alat' => $alat->nama_alat,
+                    'nomor_unit' => $alat->nomor_unit,
+                    'unit_number' => $alatUnit->unit_number,
+                    'stok_tersedia' => $alat->stok_tersedia,
+                    'harga_alat' => (float) $alat->harga_alat,
+                    'status' => $alatUnit->status,
+                ]
+            ]);
         }
 
-        $alat = $alatUnit->alat;
+        // Fallback: Cari dari alat jika format lama
+        $alat = Alat::find($data['alat_id'] ?? null);
+        
+        if (!$alat) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Alat tidak ditemukan'
+            ], 404);
+        }
 
         return response()->json([
             'success' => true,
             'alat' => [
-                'alat_unit_id' => $alatUnit->id,
                 'alat_id' => $alat->alat_id,
                 'nama_alat' => $alat->nama_alat,
                 'nomor_unit' => $alat->nomor_unit,
-                'unit_number' => $alatUnit->unit_number,
-                'status' => $alatUnit->status,
+                'stok_tersedia' => $alat->stok_tersedia,
+                'harga_alat' => (float) $alat->harga_alat,
             ]
         ]);
     }
