@@ -80,17 +80,19 @@ Route::middleware('auth')->group(function () {
 // API: Scan QR (tanpa auth - buat guest form)
 Route::post('/api/scan-qr', [App\Http\Controllers\QrCodeController::class, 'scanQr']);
 
-// Admin routes untuk generate QR
+// Admin routes untuk generate & manage QR
 Route::middleware(['auth', 'role:admin'])->group(function () {
-     Route::get('/qr-management', [App\Http\Controllers\QrCodeController::class, 'indexManagement'])
+    // View halaman QR management
+    Route::get('/qr-management', [App\Http\Controllers\QrCodeController::class, 'indexManagement'])
         ->name('qr-management');
+    
+    // Generate QR satu barang (PATCH karena update)
     Route::patch('/qr-generate/{alat}', [App\Http\Controllers\QrCodeController::class, 'generateQr'])
         ->name('qr-generate');
     
+    // Generate semua QR (GET, hanya redirect)
     Route::get('/qr-generate-all', [App\Http\Controllers\QrCodeController::class, 'generateAllQr'])
         ->name('qr-generate-all');
-
-    
 });
 
 // ============================================================

@@ -10,52 +10,24 @@ use Illuminate\Http\Request;
 class QrCodeController extends Controller
 {
     public function indexManagement()
-{
-    return view('pages.admin.qr-management', [
-        'alats' => \App\Models\Alat::all()
-    ]);
-}
-    // Generate QR untuk satu barang
-    public function generateQr(Alat $alat)
     {
-        // Data yang disimpan di QR: ID alat + nomor unit
-        $qrData = json_encode([
-            'alat_id' => $alat->alat_id,
-            'nama_alat' => $alat->nama_alat,
-            'nomor_unit' => $alat->nomor_unit,
-        ]);
-
-        // Generate QR Code
-        $qrCode = QrCode::create($qrData)
-            ->setSize(300)
-            ->setMargin(10);
-
-        $writer = new PngWriter();
-        $result = $writer->write($qrCode);
-
-        // Save ke database sebagai base64
-        $base64 = 'data:image/png;base64,' . base64_encode($result->getString());
-        $alat->update(['qr_code' => $base64]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'QR Code generated',
-            'qr_code' => $base64
+        return view('pages.admin.qr-management', [
+            'alats' => Alat::all()
         ]);
     }
 
-    // Generate QR untuk semua barang
-    public function generateAllQr()
+    // Generate QR untuk satu barang
+    public function generateQr(Alat $alat)
     {
-        $alats = Alat::all();
-
-        foreach ($alats as $alat) {
+        try {
+            // Data yang disimpan di QR: ID alat + nomor unit
             $qrData = json_encode([
                 'alat_id' => $alat->alat_id,
                 'nama_alat' => $alat->nama_alat,
                 'nomor_unit' => $alat->nomor_unit,
             ]);
 
+            // Generate QR Code
             $qrCode = QrCode::create($qrData)
                 ->setSize(300)
                 ->setMargin(10);
@@ -63,11 +35,55 @@ class QrCodeController extends Controller
             $writer = new PngWriter();
             $result = $writer->write($qrCode);
 
+            // Save ke database sebagai base64
             $base64 = 'data:image/png;base64,' . base64_encode($result->getString());
             $alat->update(['qr_code' => $base64]);
-        }
 
-        return redirect()->back()->with('success', 'Semua QR Code berhasil digenerate!');
+            return response()->json([
+                'success' => true,
+                'message' => 'QR Code berhasil digenerate'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // Generate QR untuk semua barang
+    public function generateAllQr()
+    {
+        try {
+            $alats = Alat::all();
+            $successCount = 0;
+
+            foreach ($alats as $alat) {
+                $qrData = json_encode([
+                    'alat_id' => $alat->alat_id,
+                    'nama_alat' => $alat->nama_alat,
+                    'nomor_unit' => $alat->nomor_unit,
+                ]);
+
+                $qrCode = QrCode::create($qrData)
+                    ->setSize(300)
+                    ->setMargin(10);
+
+                $writer = new PngWriter();
+                $result = $writer->write($qrCode);
+
+                $base64 = 'data:image/png;base64,' . base64_encode($result->getString());
+                $alat->update(['qr_code' => $base64]);
+                
+                $successCount++;
+            }
+
+            return redirect()->route('qr-management')
+                ->with('success', "✅ Berhasil generate {$successCount} QR Code!");
+        } catch (\Exception $e) {
+            return redirect()->route('qr-management')
+                ->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 
     // API: Scan QR dan return alat data
