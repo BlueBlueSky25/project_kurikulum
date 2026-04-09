@@ -25,11 +25,10 @@ class Alat extends Model
         'kondisi',
         'qr_code',  
         'lokasi',
-        'harga_alat',              // ✅ NEW
-        'persen_denda_rusak',      // ✅ NEW
+        'harga_alat',
+        'persen_denda_rusak',
     ];
 
-    // ✅ NEW: Casting untuk tipe data yang tepat
     protected $casts = [
         'harga_alat' => 'decimal:2',
         'persen_denda_rusak' => 'integer',
@@ -46,12 +45,18 @@ class Alat extends Model
         return $this->hasMany(Peminjaman::class, 'alat_id', 'alat_id');
     }
 
+    // ✅ NEW: Relasi ke units
+    public function units()
+    {
+        return $this->hasMany(AlatUnit::class, 'alat_id', 'alat_id');
+    }
+
     public function getRouteKeyName()
     {
         return 'alat_id';
     }
 
-    // ✅ NEW: Helper method untuk hitung denda
+    // Helper method untuk hitung denda
     public function hitungDendaBarang($kondisi, $jumlah = 1)
     {
         if ($kondisi == 'baik') {
@@ -59,7 +64,7 @@ class Alat extends Model
         } elseif ($kondisi == 'rusak') {
             return ($this->harga_alat * ($this->persen_denda_rusak / 100)) * $jumlah;
         } elseif ($kondisi == 'hilang') {
-            return ($this->harga_alat * 1) * $jumlah;  // 100%
+            return ($this->harga_alat * 1) * $jumlah;
         }
         return 0;
     }

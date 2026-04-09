@@ -19,9 +19,10 @@ class Peminjaman extends Model
         'kode_peminjaman',
         'user_id',
         'alat_id',
+        'alat_unit_id',        // ✅ NEW
         'jumlah',
         'kelas',
-        'mata_pelajaran',  // ← TAMBAH INI
+        'mata_pelajaran',
         'jam_peminjaman',
         'tanggal_peminjaman',
         'tanggal_kembali_rencana',
@@ -43,7 +44,6 @@ class Peminjaman extends Model
         'status' => 'menunggu',
     ];
 
-    // ✅ Auto generate kode peminjaman saat create
     protected static function boot()
     {
         parent::boot();
@@ -55,14 +55,12 @@ class Peminjaman extends Model
         });
     }
 
-    // ✅ Generate kode unik (format: PMJ-YYYYMMDD-XXXXX)
     public static function generateKodePeminjaman()
     {
         $date = now()->format('Ymd');
         $random = strtoupper(Str::random(5));
         $kode = "PMJ-{$date}-{$random}";
 
-        // Jika sudah ada, generate ulang
         while (self::where('kode_peminjaman', $kode)->exists()) {
             $random = strtoupper(Str::random(5));
             $kode = "PMJ-{$date}-{$random}";
@@ -71,7 +69,6 @@ class Peminjaman extends Model
         return $kode;
     }
 
-    // ✅ Helper: Dapatkan nama peminjam (guest atau user)
     public function getNamaPeminjam()
     {
         if ($this->user_id) {
@@ -80,7 +77,6 @@ class Peminjaman extends Model
         return $this->nama_peminjam_guest ?? '-';
     }
 
-    // ✅ Helper: Dapatkan telepon peminjam (guest atau user)
     public function getTeleponPeminjam()
     {
         if ($this->user_id) {
@@ -89,7 +85,6 @@ class Peminjaman extends Model
         return $this->telepon_peminjam_guest ?? '-';
     }
 
-    // ✅ Helper: Cek apakah peminjaman dari guest atau user
     public function isGuest()
     {
         return $this->user_id === null;
@@ -104,6 +99,12 @@ class Peminjaman extends Model
     public function alat()
     {
         return $this->belongsTo(Alat::class, 'alat_id', 'alat_id');
+    }
+
+    // ✅ NEW: Relasi ke unit spesifik
+    public function alatUnit()
+    {
+        return $this->belongsTo(AlatUnit::class, 'alat_unit_id');
     }
 
     public function petugas()
