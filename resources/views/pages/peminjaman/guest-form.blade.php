@@ -174,22 +174,24 @@
                                 @enderror
                             </div>
 
-                            {{-- QR Scanner Input --}}
+                                                        {{-- QR Scanner Input --}}
                             <div>
                                 <label class="block font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-2.5">
                                     Scan QR Barang <span class="text-espresso">*</span>
                                 </label>
-                                <div class="relative">
-                                    <input
-                                        type="text" 
-                                        id="qr_scanner_input" 
-                                        placeholder="Arahkan kamera ke QR code barang"
-                                        class="peer w-full bg-transparent border-b border-rule pb-2.5 pt-1 font-sans text-[0.85rem] text-ink outline-none placeholder-ghost/60 transition-colors duration-200 focus:border-ink"
-                                        autocomplete="off"
-                                    >
-                                    <span class="absolute bottom-0 left-0 h-px w-0 bg-ink transition-all duration-300 peer-focus:w-full"></span>
-                                    <i class="fas fa-camera absolute right-3 top-1/2 -translate-y-1/2 text-ghost text-[0.8rem]"></i>
-                                </div>
+                                
+                                {{-- ✅ UPDATED: Tombol Scanner (bukan input) --}}
+                                <button
+                                    type="button"
+                                    id="qr_scanner_btn"
+                                    class="w-full px-4 py-3 bg-cream border border-rule font-sans text-[0.75rem] font-semibold tracking-[0.1em] uppercase text-ink
+                                           hover:border-espresso hover:bg-espresso/5 transition-all duration-200
+                                           flex items-center justify-center gap-2"
+                                >
+                                    <i class="fas fa-camera text-[0.8rem]"></i>
+                                    <span>Buka Kamera - Scan QR</span>
+                                </button>
+                                
                                 <p id="qr_status" class="font-sans text-[0.62rem] text-label mt-1.5"></p>
                             </div>
 
@@ -500,8 +502,8 @@
 
 
 
-    <script>
-        const qrScannerInput = document.getElementById('qr_scanner_input');
+        <script>
+        const qrScannerBtn = document.getElementById('qr_scanner_btn');
         const qrStatus = document.getElementById('qr_status');
         const alatTerpilih = document.getElementById('alat_terpilih');
         const alatIdInput = document.getElementById('alat_id_input');
@@ -511,8 +513,8 @@
         let stream = null;
         let isScanning = false;
 
-        // Start scanning saat input di-focus
-        qrScannerInput.addEventListener('focus', function(e) {
+        // ✅ UPDATED: Click button untuk start camera
+        qrScannerBtn.addEventListener('click', function(e) {
             e.preventDefault();
             startCamera();
         });
@@ -532,8 +534,9 @@
             const closeBtn = document.createElement('button');
             closeBtn.innerHTML = '✕ Tutup Kamera';
             closeBtn.setAttribute('type', 'button');
-            closeBtn.setAttribute('style', 'position:fixed;top:20px;right:20px;z-index:10000;padding:10px 20px;background:#1c1917;color:#fffdf9;border:none;cursor:pointer;font-weight:bold;border-radius:5px;');
-            closeBtn.addEventListener('click', function() {
+            closeBtn.setAttribute('style', 'position:fixed;top:20px;right:20px;z-index:10000;padding:10px 20px;background:#1c1917;color:#fffdf9;border:none;cursor:pointer;font-weight:bold;border-radius:5px;font-size:14px;');
+            closeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
                 stopCamera();
             });
             document.body.appendChild(closeBtn);
@@ -570,7 +573,9 @@
                 qrStatus.textContent = '❌ Error: ' + err.message;
                 qrStatus.style.color = '#b23d3d';
                 isScanning = false;
-                closeBtn.remove();
+                
+                // Cleanup
+                if (closeBtn) closeBtn.remove();
             });
         }
 
@@ -600,7 +605,7 @@
             }
         }
 
-                function processQrData(qrData) {
+        function processQrData(qrData) {
             console.log('Processing QR Data:', qrData);
             
             fetch('/api/scan-qr', {
@@ -623,31 +628,37 @@
                     // Display barang yang ter-scan
                     document.getElementById('alat_nama').textContent = alat.nama_alat;
                     
-                    // ✅ FIXED: Handle unit display
+                    // Handle unit display
                     const unitText = alat.unit_number 
                         ? `Unit ${alat.unit_number}` 
                         : (alat.nomor_unit || '—');
                     document.getElementById('alat_unit').textContent = unitText;
                     
-                    // ✅ FIXED: Handle stok display
+                    // Handle stok display
                     const stokTersedia = alat.stok_tersedia || 0;
                     document.getElementById('alat_stok').textContent = stokTersedia + ' unit';
                     
-                    // ✅ FIXED: Handle harga display
+                    // Handle harga display
                     const harga = parseFloat(alat.harga_alat) || 0;
                     document.getElementById('alat_harga').textContent = 'Rp ' + formatCurrency(harga);
 
                     alatIdInput.value = alat.alat_id;
-                    alatTerpilih.style.display = 'block';
+                    document.getElementById('alat_terpilih').style.display = 'block';
 
                     qrStatus.textContent = '✓ Barang terdeteksi!';
                     qrStatus.style.color = '#1c1917';
 
-                    // ✅ FIXED: Update jumlah maksimal dengan stok yang benar
+                    // Update jumlah maksimal
                     const maxJumlah = Math.max(stokTersedia, 1);
                     document.getElementById('jumlah_input').max = maxJumlah;
                     document.getElementById('jumlah_input').value = 1;
                     document.getElementById('stok_info').textContent = 'Maksimal: ' + maxJumlah + ' unit tersedia';
+
+                    // ✅ UPDATED: Ubah tombol state setelah scan berhasil
+                    qrScannerBtn.innerHTML = '<i class="fas fa-check text-[0.8rem]"></i><span>QR Terdeteksi ✓</span>';
+                    qrScannerBtn.style.borderColor = '#1c1917';
+                    qrScannerBtn.style.backgroundColor = '#1c1917';
+                    qrScannerBtn.style.color = '#fffdf9';
 
                 } else {
                     qrStatus.textContent = '❌ ' + data.message;
@@ -684,9 +695,14 @@
         function clearQrScan() {
             stopCamera();
             alatIdInput.value = '';
-            alatTerpilih.style.display = 'none';
+            document.getElementById('alat_terpilih').style.display = 'none';
             qrStatus.textContent = '';
-            qrScannerInput.value = '';
+            
+            // ✅ UPDATED: Reset tombol ke state awal
+            qrScannerBtn.innerHTML = '<i class="fas fa-camera text-[0.8rem]"></i><span>Buka Kamera - Scan QR</span>';
+            qrScannerBtn.style.borderColor = '';
+            qrScannerBtn.style.backgroundColor = '';
+            qrScannerBtn.style.color = '';
         }
 
         function formatCurrency(value) {

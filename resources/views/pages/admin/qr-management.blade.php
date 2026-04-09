@@ -48,77 +48,154 @@
         </a>
     </div>
 
-    {{-- Daftar Unit QR --}}
+    {{-- Daftar Unit QR (Grouped by Alat) --}}
     <div class="bg-paper border border-rule">
         <table class="w-full">
             <thead>
                 <tr class="border-b border-rule bg-cream">
+                    <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label w-1"></th>
                     <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Nama Alat</th>
-                    <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Unit</th>
+                    <th class="px-4 py-3.5 text-center font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Unit</th>
                     <th class="px-4 py-3.5 text-center font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">QR Code</th>
                     <th class="px-4 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-rule" id="tableBody">
-                @foreach($alatUnits as $unit)
-                    <tr class="hover:bg-cream/40" id="row-{{ $unit->id }}">
-                        <td class="px-4 py-4 font-sans text-[0.78rem] font-medium text-ink">
-                            {{ $unit->alat->nama_alat }}
+                @php
+                    // ✅ Group units by alat
+                    $groupedUnits = $alatUnits->groupBy(function($unit) {
+                        return $unit->alat_id;
+                    });
+                @endphp
+
+                @foreach($groupedUnits as $alatId => $units)
+                    @php
+                        $alat = $units->first()->alat;
+                        $totalUnits = $units->count();
+                    @endphp
+
+                    {{-- ✅ Parent Row (Collapsible Header) --}}
+                    <tr class="hover:bg-cream/40 bg-cream/20 cursor-pointer" 
+                        onclick="toggleGroup({{ $alatId }})"
+                        id="header-{{ $alatId }}">
+                        <td class="px-4 py-4 text-center">
+                            <i class="fas fa-chevron-right text-[0.7rem] text-label transition-transform duration-300"
+                               id="icon-{{ $alatId }}"></i>
                         </td>
-                        <td class="px-4 py-4 font-sans text-[0.78rem] text-label">
-                            Unit {{ $unit->unit_number }}
+                        <td class="px-4 py-4 font-sans text-[0.78rem] font-semibold text-ink">
+                            {{ $alat->nama_alat }}
+                        </td>
+                        <td class="px-4 py-4 text-center font-sans text-[0.72rem] font-semibold text-label">
+                            {{ $totalUnits }} Unit
                         </td>
                         <td class="px-4 py-4 text-center">
-                            <img id="qr-{{ $unit->id }}" 
-                                 src="{{ $unit->qr_code ?? '' }}" 
-                                 alt="QR" 
-                                 style="width: 80px; height: 80px; {{ !$unit->qr_code ? 'display: none;' : '' }}">
-                            <span id="qr-empty-{{ $unit->id }}" 
-                                  class="font-sans text-[0.65rem] text-ghost"
-                                  style="{{ $unit->qr_code ? 'display: none;' : '' }}">
-                                Belum ada
+                            @php
+                                $generatedCount = $units->whereNotNull('qr_code')->count();
+                            @endphp
+                            <span class="font-sans text-[0.7rem] font-semibold text-ghost">
+                                {{ $generatedCount }}/{{ $totalUnits }} ✓
                             </span>
                         </td>
                         <td class="px-4 py-4">
-                            <div class="flex gap-2 flex-wrap">
-                                {{-- Generate QR --}}
-                                <button onclick="generateQr({{ $unit->id }})"
-                                    id="btn-generate-{{ $unit->id }}"
-                                    class="px-3 py-2 bg-espresso text-paper border border-espresso font-sans text-[0.55rem] font-semibold tracking-[0.1em] uppercase hover:bg-ink transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                                    title="Generate QR Code">
-                                    <i class="fas fa-sync text-xs"></i> Generate
-                                </button>
+                            <div class="flex gap-2">
+                                {{-- Generate All for This Alat --}}
+                                <a href="{{ route('qr-generate-by-alat', $alat->alat_id) }}"
+                                    class="px-3 py-2 bg-espresso text-paper border border-espresso font-sans text-[0.55rem] font-semibold tracking-[0.1em] uppercase hover:bg-ink transition-all"
+                                    title="Generate semua unit alat ini">
+                                    <i class="fas fa-zap text-xs"></i> Generate All
+                                </a>
 
-                                {{-- Print --}}
-                                <button onclick="printQr('{{ $unit->qr_code ?? '' }}', '{{ $unit->alat->nama_alat }}', 'Unit {{ $unit->unit_number }}')"
-                                    id="btn-print-{{ $unit->id }}"
-                                    class="px-3 py-2 border border-rule text-label font-sans text-[0.55rem] font-semibold tracking-[0.1em] uppercase hover:border-espresso hover:text-espresso transition-all"
-                                    style="{{ !$unit->qr_code ? 'display: none;' : '' }}"
-                                    title="Print QR Code">
-                                    <i class="fas fa-print text-xs"></i> Print
-                                </button>
-
-                                {{-- Download PDF --}}
-                                <a href="{{ route('qr-download-pdf', $unit->id) }}"
-                                    id="btn-download-{{ $unit->id }}"
+                                {{-- Download All for This Alat --}}
+                                <a href="{{ route('qr-download-by-alat-pdf', $alat->alat_id) }}"
                                     class="px-3 py-2 border border-blue-400 text-blue-600 font-sans text-[0.55rem] font-semibold tracking-[0.1em] uppercase hover:bg-blue-50 transition-all"
-                                    style="{{ !$unit->qr_code ? 'display: none;' : '' }}"
-                                    title="Download as PDF">
-                                    <i class="fas fa-download text-xs"></i> PDF
+                                    title="Download semua unit alat ini">
+                                    <i class="fas fa-download text-xs"></i> All PDF
                                 </a>
                             </div>
                         </td>
                     </tr>
+
+                    {{-- ✅ Child Rows (Units - Hidden by default) --}}
+                    @foreach($units as $unit)
+                        <tr class="hover:bg-cream/40 group-{{ $alatId }}" 
+                            id="row-{{ $unit->id }}"
+                            style="display: none;">
+                            <td class="px-4 py-4"></td>
+                            <td class="px-4 py-4 font-sans text-[0.72rem] text-label pl-12">
+                                {{ $alat->nama_alat }}
+                            </td>
+                            <td class="px-4 py-4 text-center font-sans text-[0.72rem] font-semibold text-ink">
+                                Unit {{ $unit->unit_number }}
+                            </td>
+                            <td class="px-4 py-4 text-center">
+                                <img id="qr-{{ $unit->id }}" 
+                                     src="{{ $unit->qr_code ?? '' }}" 
+                                     alt="QR" 
+                                     style="width: 60px; height: 60px; {{ !$unit->qr_code ? 'display: none;' : '' }}">
+                                <span id="qr-empty-{{ $unit->id }}" 
+                                      class="font-sans text-[0.65rem] text-ghost"
+                                      style="{{ $unit->qr_code ? 'display: none;' : '' }}">
+                                    Belum ada
+                                </span>
+                            </td>
+                            <td class="px-4 py-4">
+                                <div class="flex gap-2 flex-wrap">
+                                    {{-- Generate QR --}}
+                                    <button onclick="generateQr({{ $unit->id }}); event.stopPropagation();"
+                                        id="btn-generate-{{ $unit->id }}"
+                                        class="px-2 py-1.5 bg-espresso text-paper border border-espresso font-sans text-[0.5rem] font-semibold tracking-[0.05em] uppercase hover:bg-ink transition-all disabled:opacity-50"
+                                        title="Generate QR Code">
+                                        <i class="fas fa-sync text-xs"></i> Gen
+                                    </button>
+
+                                    {{-- Print --}}
+                                    <button onclick="printQr('{{ $unit->qr_code ?? '' }}', '{{ $alat->nama_alat }}', 'Unit {{ $unit->unit_number }}'); event.stopPropagation();"
+                                        id="btn-print-{{ $unit->id }}"
+                                        class="px-2 py-1.5 border border-rule text-label font-sans text-[0.5rem] font-semibold tracking-[0.05em] uppercase hover:border-espresso hover:text-espresso transition-all"
+                                        style="{{ !$unit->qr_code ? 'display: none;' : '' }}"
+                                        title="Print QR Code">
+                                        <i class="fas fa-print text-xs"></i> Print
+                                    </button>
+
+                                    {{-- Download PDF --}}
+                                    <a href="{{ route('qr-download-pdf', $unit->id) }}"
+                                        id="btn-download-{{ $unit->id }}"
+                                        class="px-2 py-1.5 border border-blue-400 text-blue-600 font-sans text-[0.5rem] font-semibold tracking-[0.05em] uppercase hover:bg-blue-50 transition-all"
+                                        style="{{ !$unit->qr_code ? 'display: none;' : '' }}"
+                                        title="Download as PDF"
+                                        onclick="event.stopPropagation();">
+                                        <i class="fas fa-download text-xs"></i> PDF
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
                 @endforeach
             </tbody>
         </table>
     </div>
 
     <script>
+        // ✅ Toggle group visibility
+        function toggleGroup(alatId) {
+            const rows = document.querySelectorAll(`.group-${alatId}`);
+            const icon = document.getElementById(`icon-${alatId}`);
+            
+            rows.forEach(row => {
+                const isHidden = row.style.display === 'none';
+                row.style.display = isHidden ? 'table-row' : 'none';
+            });
+
+            // Rotate chevron icon
+            icon.style.transform = icon.style.transform === 'rotate(90deg)' 
+                ? 'rotate(0deg)' 
+                : 'rotate(90deg)';
+        }
+
         function generateQr(unitId) {
             const btn = document.getElementById(`btn-generate-${unitId}`);
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i> Loading...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i>';
 
             fetch(`{{ url('/qr-generate') }}/${unitId}`, {
                 method: 'PATCH',
@@ -152,7 +229,7 @@
             })
             .finally(() => {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-sync text-xs"></i> Generate';
+                btn.innerHTML = '<i class="fas fa-sync text-xs"></i> Gen';
             });
         }
 
