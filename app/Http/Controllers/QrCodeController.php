@@ -27,10 +27,10 @@ class QrCodeController extends Controller
                 'nomor_unit' => $alat->nomor_unit,
             ]);
 
-            // Generate QR Code
-            $qrCode = QrCode::create($qrData)
-                ->setSize(300)
-                ->setMargin(10);
+            // Generate QR Code - Syntax untuk v5.x
+            $qrCode = new QrCode($qrData);
+            $qrCode->setSize(300);
+            $qrCode->setMargin(10);
 
             $writer = new PngWriter();
             $result = $writer->write($qrCode);
@@ -41,7 +41,8 @@ class QrCodeController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'QR Code berhasil digenerate'
+                'message' => 'QR Code berhasil digenerate',
+                'qr_code' => $base64
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -59,23 +60,27 @@ class QrCodeController extends Controller
             $successCount = 0;
 
             foreach ($alats as $alat) {
-                $qrData = json_encode([
-                    'alat_id' => $alat->alat_id,
-                    'nama_alat' => $alat->nama_alat,
-                    'nomor_unit' => $alat->nomor_unit,
-                ]);
+                try {
+                    $qrData = json_encode([
+                        'alat_id' => $alat->alat_id,
+                        'nama_alat' => $alat->nama_alat,
+                        'nomor_unit' => $alat->nomor_unit,
+                    ]);
 
-                $qrCode = QrCode::create($qrData)
-                    ->setSize(300)
-                    ->setMargin(10);
+                    $qrCode = new QrCode($qrData);
+                    $qrCode->setSize(300);
+                    $qrCode->setMargin(10);
 
-                $writer = new PngWriter();
-                $result = $writer->write($qrCode);
+                    $writer = new PngWriter();
+                    $result = $writer->write($qrCode);
 
-                $base64 = 'data:image/png;base64,' . base64_encode($result->getString());
-                $alat->update(['qr_code' => $base64]);
-                
-                $successCount++;
+                    $base64 = 'data:image/png;base64,' . base64_encode($result->getString());
+                    $alat->update(['qr_code' => $base64]);
+                    
+                    $successCount++;
+                } catch (\Exception $e) {
+                    \Log::error("QR generate error for {$alat->nama_alat}: " . $e->getMessage());
+                }
             }
 
             return redirect()->route('qr-management')
