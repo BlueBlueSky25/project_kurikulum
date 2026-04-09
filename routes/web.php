@@ -93,6 +93,13 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     // Generate semua QR (GET, hanya redirect)
     Route::get('/qr-generate-all', [App\Http\Controllers\QrCodeController::class, 'generateAllQr'])
         ->name('qr-generate-all');
+    
+    // ✅ ADDED: Download QR as PDF routes
+    Route::get('/qr-download/{alat}/pdf', [App\Http\Controllers\QrCodeController::class, 'downloadQrPdf'])
+        ->name('qr-download-pdf');
+    
+    Route::get('/qr-download-all/pdf', [App\Http\Controllers\QrCodeController::class, 'downloadAllQrPdf'])
+        ->name('qr-download-all-pdf');
 });
 
 // ============================================================

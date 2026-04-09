@@ -27,8 +27,8 @@
         </div>
     @endif
 
-    {{-- Generate All Button --}}
-    <div class="mb-8">
+        {{-- Generate All Button --}}
+    <div class="mb-8 flex gap-3">
         <a href="{{ route('qr-generate-all') }}"
             class="relative overflow-hidden inline-flex items-center gap-2 bg-espresso px-5 py-3
                    font-sans text-[0.62rem] font-semibold tracking-[0.2em] uppercase text-paper
@@ -36,6 +36,16 @@
         >
             <i class="fas fa-qrcode text-xs"></i>
             <span>Generate Semua QR Code</span>
+        </a>
+
+        {{-- ✅ ADDED: Download All PDF --}}
+        <a href="{{ route('qr-download-all-pdf') }}"
+            class="relative overflow-hidden inline-flex items-center gap-2 bg-blue-600 px-5 py-3
+                   font-sans text-[0.62rem] font-semibold tracking-[0.2em] uppercase text-white
+                   transition-colors duration-200 hover:bg-blue-700 active:scale-[0.99]"
+        >
+            <i class="fas fa-download text-xs"></i>
+            <span>Download Semua PDF</span>
         </a>
     </div>
 
@@ -70,12 +80,13 @@
                                 Belum ada
                             </span>
                         </td>
-                        <td class="px-4 py-4">
-                            <div class="flex gap-2">
+                                                <td class="px-4 py-4">
+                            <div class="flex gap-2 flex-wrap">
                                 {{-- Generate QR dengan AJAX --}}
                                 <button onclick="generateQr({{ $alat->alat_id }})"
                                     id="btn-generate-{{ $alat->alat_id }}"
-                                    class="px-3 py-2 bg-espresso text-paper border border-espresso font-sans text-[0.55rem] font-semibold tracking-[0.1em] uppercase hover:bg-ink transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                    class="px-3 py-2 bg-espresso text-paper border border-espresso font-sans text-[0.55rem] font-semibold tracking-[0.1em] uppercase hover:bg-ink transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title="Generate QR Code">
                                     <i class="fas fa-sync text-xs"></i> Generate
                                 </button>
 
@@ -83,9 +94,19 @@
                                 <button onclick="printQr('{{ $alat->qr_code ?? '' }}', '{{ $alat->nama_alat }}', '{{ $alat->nomor_unit ?? '' }}')"
                                     id="btn-print-{{ $alat->alat_id }}"
                                     class="px-3 py-2 border border-rule text-label font-sans text-[0.55rem] font-semibold tracking-[0.1em] uppercase hover:border-espresso hover:text-espresso transition-all"
-                                    style="{{ !$alat->qr_code ? 'display: none;' : '' }}">
+                                    style="{{ !$alat->qr_code ? 'display: none;' : '' }}"
+                                    title="Print QR Code">
                                     <i class="fas fa-print text-xs"></i> Print
                                 </button>
+
+                                {{-- ✅ ADDED: Download PDF --}}
+                                <a href="{{ route('qr-download-pdf', $alat->alat_id) }}"
+                                    id="btn-download-{{ $alat->alat_id }}"
+                                    class="px-3 py-2 border border-blue-400 text-blue-600 font-sans text-[0.55rem] font-semibold tracking-[0.1em] uppercase hover:bg-blue-50 transition-all"
+                                    style="{{ !$alat->qr_code ? 'display: none;' : '' }}"
+                                    title="Download as PDF">
+                                    <i class="fas fa-download text-xs"></i> PDF
+                                </a>
                             </div>
                         </td>
                     </tr>
