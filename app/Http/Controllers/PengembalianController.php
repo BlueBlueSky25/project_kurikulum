@@ -311,6 +311,12 @@ public function getFromQr(Request $request)
     ]);
 }
 
+// ✅ NEW: Show quick return form
+public function quickReturnForm()
+{
+    return view('pages.pengembalian.quick-return');
+}
+
 
 
     public function destroy(Pengembalian $pengembalian)
