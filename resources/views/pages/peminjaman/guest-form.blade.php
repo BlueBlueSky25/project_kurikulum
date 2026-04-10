@@ -896,7 +896,7 @@ function showInstallPrompt() {
       font-size: 18px;
       cursor: pointer;
       padding: 8px 12px;
-      margin-right: 12px;
+      margin-right: 16px;
       display: inline-flex;
       color: #1c1917;
       transition: all 0.2s;
@@ -913,13 +913,11 @@ function showInstallPrompt() {
       installBtn.style.color = '#1c1917';
     };
     
-    const navContainer = document.querySelector('nav .flex.items-center.justify-between');
-    if (navContainer) {
-      const loginLink = navContainer.querySelector('a');
-      if (loginLink) {
-        navContainer.insertBefore(installBtn, loginLink);
-        console.log('✅ Install button inserted before login!');
-      }
+    // ✅ DIRECT: cari login button aja, insert sebelumnya
+    const loginBtn = document.querySelector('a[href*="login"]');
+    if (loginBtn && loginBtn.parentElement) {
+      loginBtn.parentElement.insertBefore(installBtn, loginBtn);
+      console.log('✅ Install button inserted right before login!');
     }
   }
   
