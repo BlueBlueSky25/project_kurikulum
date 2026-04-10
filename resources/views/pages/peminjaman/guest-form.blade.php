@@ -851,6 +851,13 @@
 </script>
 
 
+{{-- ✅ QR SCANNER SCRIPT --}}
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script>
+    // QR SCANNER CODE (panjang)
+    console.log('✅ Script initialized');
+</script>
+
 {{-- ✅ PWA - SERVICE WORKER REGISTRATION --}}
 <script>
 if ('serviceWorker' in navigator) {
@@ -895,23 +902,12 @@ function showInstallPrompt() {
       display: inline-flex;
     `;
     
-    // ✅ DEBUG: cari navbar dulu
-    const navbar = document.querySelector('nav');
-    console.log('🔍 Navbar found:', !!navbar);
-    
-    if (navbar) {
-      // ✅ DEBUG: cari login button
-      const navRight = navbar.querySelector('.flex.items-center.justify-between > div:last-child');
-      console.log('🔍 Nav right section found:', !!navRight);
-      
-      if (navRight) {
-        // Insert di awal (sebelum login button)
-        navRight.insertBefore(installBtn, navRight.firstChild);
-        console.log('✅ Install button inserted!');
-      } else {
-        // Fallback: append ke navbar aja
-        navbar.appendChild(installBtn);
-        console.log('⚠️ Appended to navbar (fallback)');
+    const navContainer = document.querySelector('nav .flex.items-center.justify-between');
+    if (navContainer) {
+      const loginLink = navContainer.querySelector('a');
+      if (loginLink) {
+        navContainer.insertBefore(installBtn, loginLink);
+        console.log('✅ Install button inserted before login!');
       }
     }
   }
@@ -935,6 +931,9 @@ window.addEventListener('appinstalled', () => {
   if (installBtn) installBtn.style.display = 'none';
 });
 </script>
+
+</body>
+</html>
 
 </body>
 </html>
