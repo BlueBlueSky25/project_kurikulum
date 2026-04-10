@@ -889,35 +889,20 @@ function showInstallPrompt() {
   if (!installBtn) {
     installBtn = document.createElement('button');
     installBtn.id = 'installButton';
-    installBtn.innerHTML = '<i class="fas fa-download"></i>';
+    
+    // ✅ STYLING DIPERBAIKI
+    installBtn.innerHTML = '<i class="fas fa-download text-sm mr-2"></i><span>Install App</span>';
+    installBtn.className = 'relative overflow-hidden bg-espresso hover:bg-ink px-6 py-2.5 font-sans text-[0.7rem] font-semibold tracking-[0.1em] uppercase text-paper transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95';
     installBtn.style.cssText = `
-      background: none;
-      border: none;
-      font-size: 18px;
-      cursor: pointer;
-      padding: 8px 12px;
+      display: none;
+      position: relative;
+      margin-left: auto;
       margin-right: 16px;
-      display: inline-flex;
-      color: #1c1917;
-      transition: all 0.2s;
     `;
-    installBtn.title = 'Install App';
     
-    // Hover effect
-    installBtn.onmouseover = () => {
-      installBtn.style.transform = 'scale(1.1)';
-      installBtn.style.color = '#fffdf9';
-    };
-    installBtn.onmouseout = () => {
-      installBtn.style.transform = 'scale(1)';
-      installBtn.style.color = '#1c1917';
-    };
-    
-    // ✅ DIRECT: cari login button aja, insert sebelumnya
-    const loginBtn = document.querySelector('a[href*="login"]');
-    if (loginBtn && loginBtn.parentElement) {
-      loginBtn.parentElement.insertBefore(installBtn, loginBtn);
-      console.log('✅ Install button inserted right before login!');
+    const navbar = document.querySelector('nav');
+    if (navbar) {
+      navbar.appendChild(installBtn);
     }
   }
   
