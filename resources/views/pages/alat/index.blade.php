@@ -16,7 +16,6 @@
             <div class="mt-3 h-px w-10 bg-rule"></div>
         </div>
 
-        {{-- ✅ UPDATED: Only Admin can add alat --}}
         @if($userLevel == 'admin')
             <button
                 onclick="openModal()"
@@ -219,6 +218,17 @@
                             @endif
                         </div>
 
+                        {{-- ✅ NEW: Harga Info --}}
+                        <div class="bg-espresso/5 border border-espresso/20 p-2.5 rounded">
+                            <p class="font-sans text-[0.6rem] text-label mb-1">💰 Harga & Denda:</p>
+                            <p class="font-sans text-[0.75rem] font-semibold text-ink">
+                                Rp {{ number_format($alat->harga_alat, 0, ',', '.') }}
+                            </p>
+                            <p class="font-sans text-[0.65rem] text-label mt-0.5">
+                                Denda Rusak: {{ $alat->persen_denda_rusak }}% | Hilang: 100%
+                            </p>
+                        </div>
+
                         {{-- Deskripsi --}}
                         @if($alat->deskripsi)
                             <p class="font-sans text-[0.7rem] leading-relaxed text-label line-clamp-2">
@@ -226,7 +236,7 @@
                             </p>
                         @endif
 
-                        {{-- ✅ UPDATED: Action Buttons - Only Admin can edit/delete --}}
+                        {{-- Action Buttons --}}
                         @if($userLevel == 'admin')
                             <div class="flex gap-2 pt-3 border-t border-rule mt-auto">
                                 <button
@@ -413,6 +423,46 @@
                         ></textarea>
                     </div>
 
+                    {{-- ✅ NEW: Harga Alat --}}
+                    <div class="relative">
+                        <label class="block font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-2.5">
+                            Harga Alat <span class="text-espresso">*</span>
+                        </label>
+                        <div class="flex items-center gap-1">
+                            <span class="font-sans text-[0.85rem] text-label">Rp</span>
+                            <input
+                                type="number" id="harga_alat" name="harga_alat" required
+                                placeholder="0"
+                                step="100"
+                                min="0"
+                                class="peer flex-1 bg-transparent border-b border-rule pb-2.5 pt-1 font-sans text-[0.85rem] text-ink outline-none placeholder-ghost/60 transition-colors duration-200 focus:border-ink"
+                            >
+                        </div>
+                        <span class="absolute bottom-0 left-0 h-px w-0 bg-ink transition-all duration-300 peer-focus:w-full"></span>
+                        <p class="font-sans text-[0.6rem] text-label mt-1.5">💡 Harga untuk perhitungan denda jika barang rusak/hilang</p>
+                    </div>
+
+                    {{-- ✅ NEW: Persentase Denda Rusak --}}
+                    <div class="relative">
+                        <label class="block font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-2.5">
+                            Persentase Denda Rusak <span class="text-espresso">*</span>
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <input
+                                type="number" id="persen_denda_rusak" name="persen_denda_rusak" required
+                                placeholder="30"
+                                step="5"
+                                min="0"
+                                max="100"
+                                value="30"
+                                class="peer flex-1 bg-transparent border-b border-rule pb-2.5 pt-1 font-sans text-[0.85rem] text-ink outline-none placeholder-ghost/60 transition-colors duration-200 focus:border-ink"
+                            >
+                            <span class="font-sans text-[0.85rem] text-label">%</span>
+                        </div>
+                        <span class="absolute bottom-0 left-0 h-px w-0 bg-ink transition-all duration-300 peer-focus:w-full"></span>
+                        <p class="font-sans text-[0.6rem] text-label mt-1.5">📌 Jika rusak: Rp Harga × %, Jika hilang: Rp Harga × 100%</p>
+                    </div>
+
                 </div>
 
                 {{-- Modal Footer --}}
@@ -448,6 +498,8 @@
             document.getElementById('kondisi').value = '';
             document.getElementById('lokasi').value = '';
             document.getElementById('deskripsi').value = '';
+            document.getElementById('harga_alat').value = '';
+            document.getElementById('persen_denda_rusak').value = '30';
         }
 
         function closeModal() {
@@ -466,6 +518,9 @@
             document.getElementById('kondisi').value = data.kondisi;
             document.getElementById('lokasi').value = data.lokasi || '';
             document.getElementById('deskripsi').value = data.deskripsi || '';
+            // ✅ NEW: Set harga & persentase
+            document.getElementById('harga_alat').value = data.harga_alat || 0;
+            document.getElementById('persen_denda_rusak').value = data.persen_denda_rusak || 30;
         }
 
         window.onclick = function(event) {

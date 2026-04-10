@@ -13,8 +13,8 @@ class AlatController extends Controller
     public function index()
     {
         $alats = Alat::with('kategori')->get();
-        $userLevel = Auth::user()->level; // ✅ ADDED: Get user level
-        return view('pages.alat.index', compact('alats', 'userLevel')); // ✅ UPDATED: Pass userLevel
+        $userLevel = Auth::user()->level;
+        return view('pages.alat.index', compact('alats', 'userLevel'));
     }
 
     public function create()
@@ -25,6 +25,7 @@ class AlatController extends Controller
 
     public function store(Request $request)
     {
+        // ✅ UPDATED: Validasi tambahan untuk harga & persentase
         $validated = $request->validate([
             'kategori_id' => 'required|exists:kategori,kategori_id',
             'nama_alat' => 'required|string|max:255',
@@ -33,13 +34,14 @@ class AlatController extends Controller
             'stok_total' => 'required|integer|min:1',
             'kondisi' => 'required|in:baik,rusak,hilang',
             'lokasi' => 'nullable|string',
+            'harga_alat' => 'required|numeric|min:0',                    // ✅ NEW
+            'persen_denda_rusak' => 'required|integer|min:0|max:100',    // ✅ NEW
         ]);
 
         $validated['stok_tersedia'] = $validated['stok_total'];
 
         $alat = Alat::create($validated);
 
-        // Log aktivitas
         LogAktivitas::create([
             'user_id' => Auth::id(),
             'aktivitas' => 'Tambah Alat',
@@ -58,6 +60,7 @@ class AlatController extends Controller
 
     public function update(Request $request, Alat $alat)
     {
+        // ✅ UPDATED: Validasi tambahan untuk harga & persentase
         $validated = $request->validate([
             'kategori_id' => 'required|exists:kategori,kategori_id',
             'nama_alat' => 'required|string|max:255',
@@ -66,11 +69,12 @@ class AlatController extends Controller
             'stok_total' => 'required|integer|min:1',
             'kondisi' => 'required|in:baik,rusak,hilang',
             'lokasi' => 'nullable|string',
+            'harga_alat' => 'required|numeric|min:0',                    // ✅ NEW
+            'persen_denda_rusak' => 'required|integer|min:0|max:100',    // ✅ NEW
         ]);
 
         $alat->update($validated);
 
-        // Log aktivitas
         LogAktivitas::create([
             'user_id' => Auth::id(),
             'aktivitas' => 'Update Alat',
@@ -85,7 +89,6 @@ class AlatController extends Controller
     {
         $alat->delete();
 
-        // Log aktivitas
         LogAktivitas::create([
             'user_id' => Auth::id(),
             'aktivitas' => 'Hapus Alat',

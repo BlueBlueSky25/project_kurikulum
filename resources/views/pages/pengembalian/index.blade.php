@@ -51,6 +51,71 @@
         </div>
     @endif
 
+    {{-- ✅ NEW: Summary Cards --}}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+
+        {{-- Total Denda --}}
+        <div class="bg-paper border border-rule p-5 group hover:border-espresso/30 transition-colors duration-200">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label mb-2">Total Denda</p>
+                    <p class="font-serif text-[1.3rem] font-normal leading-none text-ink">
+                        Rp {{ number_format($totalDenda, 0, ',', '.') }}
+                    </p>
+                </div>
+                <div class="w-10 h-10 bg-espresso flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-money-bill-wave text-xs text-paper"></i>
+                </div>
+            </div>
+            <div class="mt-4 h-px w-0 bg-espresso/20 group-hover:w-full transition-all duration-500"></div>
+        </div>
+
+        {{-- Denda Belum Lunas --}}
+        <div class="bg-paper border border-rule p-5 group hover:border-espresso/30 transition-colors duration-200">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label mb-2">Belum Lunas</p>
+                    <p class="font-serif text-[1.3rem] font-normal leading-none text-espresso">
+                        Rp {{ number_format($dendaBelumLunas, 0, ',', '.') }}
+                    </p>
+                </div>
+                <div class="w-10 h-10 bg-dim flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-exclamation-circle text-xs text-paper"></i>
+                </div>
+            </div>
+            <div class="mt-4 h-px w-0 bg-espresso/20 group-hover:w-full transition-all duration-500"></div>
+        </div>
+
+        {{-- Alat Rusak --}}
+        <div class="bg-paper border border-rule p-5 group hover:border-espresso/30 transition-colors duration-200">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label mb-2">Alat Rusak</p>
+                    <p class="font-serif text-[1.9rem] font-normal leading-none text-ink">{{ $alatRusak }}</p>
+                </div>
+                <div class="w-10 h-10 bg-rule flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-hammer text-xs text-paper"></i>
+                </div>
+            </div>
+            <div class="mt-4 h-px w-0 bg-espresso/20 group-hover:w-full transition-all duration-500"></div>
+        </div>
+
+        {{-- Alat Hilang --}}
+        <div class="bg-paper border border-rule p-5 group hover:border-espresso/30 transition-colors duration-200">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label mb-2">Alat Hilang</p>
+                    <p class="font-serif text-[1.9rem] font-normal leading-none text-espresso">{{ $alatHilang }}</p>
+                </div>
+                <div class="w-10 h-10 bg-espresso flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-search-minus text-xs text-paper"></i>
+                </div>
+            </div>
+            <div class="mt-4 h-px w-0 bg-espresso/20 group-hover:w-full transition-all duration-500"></div>
+        </div>
+
+    </div>
+
     {{-- ══ TABLE ══ --}}
     <div class="bg-paper border border-rule overflow-hidden">
         <table class="min-w-full">
@@ -60,9 +125,12 @@
                     <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Alat</th>
                     <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Tgl. Kembali</th>
                     <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Kondisi</th>
-                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Keterlambatan</th>
-                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Denda</th>
-                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Status Denda</th>
+                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Telat</th>
+                    {{-- ✅ NEW: Denda Breakdown --}}
+                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Denda Keterlambatan</th>
+                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Denda Barang</th>
+                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Total Denda</th>
+                    <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Status</th>
                     @if(auth()->user()->level == 'admin')
                         <th class="px-5 py-3.5 text-left font-sans text-[0.55rem] font-semibold tracking-[0.25em] uppercase text-label">Aksi</th>
                     @endif
@@ -72,14 +140,17 @@
                 @forelse($pengembalian as $item)
                     <tr class="hover:bg-cream/40 transition-colors duration-100">
 
+                        {{-- Peminjam --}}
                         <td class="px-5 py-4 font-sans text-[0.78rem] font-medium text-ink whitespace-nowrap">
                             {{ $item->peminjaman->user->username ?? '—' }}
                         </td>
 
+                        {{-- Alat --}}
                         <td class="px-5 py-4 font-sans text-[0.78rem] text-label whitespace-nowrap">
                             {{ $item->peminjaman->alat->nama_alat ?? '—' }}
                         </td>
 
+                        {{-- Tanggal Kembali --}}
                         <td class="px-5 py-4 font-sans text-[0.78rem] text-label whitespace-nowrap">
                             {{ $item->tanggal_kembali_aktual->format('d M Y') }}
                         </td>
@@ -92,11 +163,11 @@
                                 </span>
                             @elseif($item->kondisi_alat == 'rusak')
                                 <span class="px-2.5 py-1 border border-dim/20 bg-dim/5 font-sans text-[0.52rem] font-semibold tracking-[0.15em] uppercase text-dim">
-                                    Rusak
+                                    ⚠️ Rusak
                                 </span>
                             @else
                                 <span class="px-2.5 py-1 border border-espresso/20 bg-espresso/5 font-sans text-[0.52rem] font-semibold tracking-[0.15em] uppercase text-espresso">
-                                    Hilang
+                                    ❌ Hilang
                                 </span>
                             @endif
                         </td>
@@ -114,26 +185,44 @@
                             @endif
                         </td>
 
-                        {{-- Denda --}}
+                        {{-- ✅ NEW: Denda Keterlambatan --}}
                         <td class="px-5 py-4 whitespace-nowrap">
-                            @if($item->total_denda > 0)
-                                <span class="font-sans text-[0.78rem] font-semibold text-espresso">
-                                    Rp {{ number_format($item->total_denda, 0, ',', '.') }}
+                            @if($item->denda_keterlambatan > 0)
+                                <span class="font-sans text-[0.75rem] font-semibold text-ink">
+                                    Rp {{ number_format($item->denda_keterlambatan, 0, ',', '.') }}
                                 </span>
                             @else
-                                <span class="font-sans text-[0.78rem] text-ghost">—</span>
+                                <span class="font-sans text-[0.75rem] text-ghost">-</span>
                             @endif
+                        </td>
+
+                        {{-- ✅ NEW: Denda Barang --}}
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            @if($item->denda_barang > 0)
+                                <span class="font-sans text-[0.75rem] font-semibold text-espresso">
+                                    Rp {{ number_format($item->denda_barang, 0, ',', '.') }}
+                                </span>
+                            @else
+                                <span class="font-sans text-[0.75rem] text-ghost">-</span>
+                            @endif
+                        </td>
+
+                        {{-- ✅ NEW: Total Denda --}}
+                        <td class="px-5 py-4 whitespace-nowrap">
+                            <span class="font-sans text-[0.8rem] font-bold text-ink">
+                                Rp {{ number_format($item->total_denda, 0, ',', '.') }}
+                            </span>
                         </td>
 
                         {{-- Status Denda --}}
                         <td class="px-5 py-4 whitespace-nowrap">
                             @if($item->status_denda == 'lunas')
                                 <span class="px-2.5 py-1 border border-ink/20 bg-ink/5 font-sans text-[0.52rem] font-semibold tracking-[0.15em] uppercase text-ink">
-                                    Lunas
+                                    ✓ Lunas
                                 </span>
                             @else
                                 <span class="px-2.5 py-1 border border-espresso/20 bg-espresso/5 font-sans text-[0.52rem] font-semibold tracking-[0.15em] uppercase text-espresso">
-                                    {{ str_replace('_', ' ', ucfirst($item->status_denda)) }}
+                                    Belum Lunas
                                 </span>
                             @endif
                         </td>
@@ -157,7 +246,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="px-5 py-16 text-center">
+                        <td colspan="10" class="px-5 py-16 text-center">
                             <div class="w-12 h-12 bg-cream border border-rule flex items-center justify-center mx-auto mb-4">
                                 <i class="fas fa-inbox text-ghost text-base"></i>
                             </div>
@@ -212,7 +301,10 @@
                                     <option value="{{ $pinjam->peminjaman_id }}"
                                         data-jatuh-tempo="{{ $pinjam->tanggal_kembali_rencana->format('Y-m-d') }}"
                                         data-user="{{ $pinjam->user->username }}"
-                                        data-alat="{{ $pinjam->alat->nama_alat }}">
+                                        data-alat="{{ $pinjam->alat->nama_alat }}"
+                                        data-harga="{{ $pinjam->alat->harga_alat }}"
+                                        data-persen-rusak="{{ $pinjam->alat->persen_denda_rusak }}"
+                                        data-jumlah="{{ $pinjam->jumlah }}">
                                         {{ $pinjam->user->username }} — {{ $pinjam->alat->nama_alat }}
                                         ({{ $pinjam->tanggal_peminjaman->format('d/m/Y') }})
                                     </option>
@@ -232,7 +324,6 @@
                             value="{{ date('Y-m-d') }}"
                             class="peer w-full bg-transparent border-b border-rule pb-2.5 pt-1 font-sans text-[0.85rem] text-ink outline-none transition-colors duration-200 focus:border-ink">
                         <span class="absolute bottom-0 left-0 h-px w-0 bg-ink transition-all duration-300 peer-focus:w-full"></span>
-                        {{-- Info keterlambatan --}}
                         <p id="info_keterlambatan" class="font-sans text-[0.65rem] mt-1.5"></p>
                     </div>
 
@@ -259,8 +350,51 @@
                             Keterangan
                         </label>
                         <textarea name="keterangan" rows="3" placeholder="Catatan tambahan (opsional)"
-                            class="w-full bg-cream border border-rule px-3 py-2.5 font-sans text-[0.82rem] text-ink outline-none placeholder-ghost/60 focus:border-ink transition-colors duration-200 resize-none">
-                        </textarea>
+                            class="w-full bg-cream border border-rule px-3 py-2.5 font-sans text-[0.82rem] text-ink outline-none placeholder-ghost/60 focus:border-ink transition-colors duration-200 resize-none"></textarea>
+                    </div>
+
+                    {{-- ✅ NEW: Breakdown Denda (Real-time Display) --}}
+                    <div id="dendaBreakdown" style="display: none;">
+                        <div class="bg-cream border border-rule p-4 rounded">
+                            <p class="font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-3">
+                                📊 Breakdown Denda
+                            </p>
+                            
+                            {{-- Keterlambatan --}}
+                            <div class="flex justify-between items-center mb-2 pb-2 border-b border-rule">
+                                <span class="font-sans text-[0.75rem] text-label">
+                                    Keterlambatan:
+                                    <span id="hari_telat" class="font-semibold text-ink">0 hari</span>
+                                    × Rp 50.000/hari
+                                </span>
+                                <span id="denda_hari" class="font-sans text-[0.8rem] font-semibold text-ink">
+                                    Rp 0
+                                </span>
+                            </div>
+
+                            {{-- Barang (Conditional) --}}
+                            <div id="dendaBarangSection" style="display: none;">
+                                <div class="flex justify-between items-center mb-2 pb-2 border-b border-rule">
+                                    <span class="font-sans text-[0.75rem] text-label">
+                                        Denda Barang:
+                                        <span id="desc_barang" class="font-semibold text-ink">-</span>
+                                    </span>
+                                    <span id="denda_barang" class="font-sans text-[0.8rem] font-semibold text-dim">
+                                        Rp 0
+                                    </span>
+                                </div>
+                            </div>
+
+                            {{-- Total --}}
+                            <div class="flex justify-between items-center pt-2">
+                                <span class="font-sans text-[0.8rem] font-bold text-ink">
+                                    TOTAL DENDA:
+                                </span>
+                                <span id="total_denda" class="font-sans text-[1rem] font-bold text-espresso">
+                                    Rp 0
+                                </span>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
@@ -290,40 +424,94 @@
             document.getElementById('pengembalianModal').classList.add('hidden');
         }
 
-        const peminjamanSelect  = document.getElementById('peminjaman_select');
-        const tanggalKembali    = document.getElementById('tanggal_kembali');
-        const infoPeminjaman    = document.getElementById('info_peminjaman');
+        // ✅ NEW: Real-time Denda Calculation
+        const peminjamanSelect = document.getElementById('peminjaman_select');
+        const tanggalKembali = document.getElementById('tanggal_kembali');
+        const kondisiSelect = document.querySelector('select[name="kondisi_alat"]');
+        const dendaBreakdown = document.getElementById('dendaBreakdown');
+        const infoPeminjaman = document.getElementById('info_peminjaman');
         const infoKeterlambatan = document.getElementById('info_keterlambatan');
 
-        function hitungKeterlambatan() {
-            const selected   = peminjamanSelect.options[peminjamanSelect.selectedIndex];
+        function hitungDenda() {
+            const selected = peminjamanSelect.options[peminjamanSelect.selectedIndex];
             const jatuhTempo = selected.getAttribute('data-jatuh-tempo');
-            const user       = selected.getAttribute('data-user');
-            const alat       = selected.getAttribute('data-alat');
-
-            if (jatuhTempo && tanggalKembali.value) {
-                const tempo  = new Date(jatuhTempo);
-                const kembali = new Date(tanggalKembali.value);
-                const diff   = Math.ceil((kembali - tempo) / (1000 * 60 * 60 * 24));
-
-                infoPeminjaman.textContent = user + ' — ' + alat;
-
-                if (diff > 0) {
-                    const denda = diff * 50000;
-                    infoKeterlambatan.innerHTML =
-                        '<span style="color:#1c1917;font-weight:600;">Terlambat ' + diff + ' hari &nbsp;·&nbsp; Denda: Rp ' + denda.toLocaleString('id-ID') + '</span>';
-                } else {
-                    infoKeterlambatan.innerHTML =
-                        '<span style="color:#6e665e;">Tepat waktu</span>';
-                }
-            } else {
-                infoPeminjaman.textContent    = '';
+            const user = selected.getAttribute('data-user');
+            const alat = selected.getAttribute('data-alat');
+            
+            if (!jatuhTempo || !tanggalKembali.value) {
+                dendaBreakdown.style.display = 'none';
+                infoPeminjaman.textContent = '';
                 infoKeterlambatan.textContent = '';
+                return;
             }
+
+            // Info Peminjaman
+            infoPeminjaman.textContent = user + ' — ' + alat;
+
+            // Hitung keterlambatan
+            const tempo = new Date(jatuhTempo);
+            const kembali = new Date(tanggalKembali.value);
+            const keterlambatan = Math.max(0, Math.ceil((kembali - tempo) / (1000 * 60 * 60 * 24)));
+
+            // Denda keterlambatan (Fixed: 50.000/hari)
+            const dendaKeterlambatan = keterlambatan * 50000;
+
+            // Data barang (dari data attribute)
+            const hargaAlat = parseFloat(selected.getAttribute('data-harga') || 0);
+            const persenRusak = parseInt(selected.getAttribute('data-persen-rusak') || 30);
+            const jumlah = parseInt(selected.getAttribute('data-jumlah') || 1);
+            const kondisi = kondisiSelect.value;
+
+            // Hitung denda barang
+            let dendaBarang = 0;
+            let descBarang = '';
+
+            if (kondisi === 'baik') {
+                dendaBarang = 0;
+                descBarang = 'Tidak ada denda';
+            } else if (kondisi === 'rusak') {
+                dendaBarang = (hargaAlat * (persenRusak / 100)) * jumlah;
+                descBarang = `Rusak (${persenRusak}% dari Rp ${hargaAlat.toLocaleString('id-ID')})`;
+            } else if (kondisi === 'hilang') {
+                dendaBarang = hargaAlat * jumlah;
+                descBarang = `Hilang (100% Ganti Rugi Rp ${hargaAlat.toLocaleString('id-ID')})`;
+            }
+
+            // Total denda
+            const totalDenda = dendaKeterlambatan + dendaBarang;
+
+            // Update display
+            document.getElementById('hari_telat').textContent = keterlambatan + ' hari';
+            document.getElementById('denda_hari').textContent = 'Rp ' + dendaKeterlambatan.toLocaleString('id-ID');
+            document.getElementById('total_denda').textContent = 'Rp ' + totalDenda.toLocaleString('id-ID');
+
+            if (dendaBarang > 0) {
+                document.getElementById('dendaBarangSection').style.display = 'block';
+                document.getElementById('desc_barang').textContent = descBarang;
+                document.getElementById('denda_barang').textContent = 'Rp ' + dendaBarang.toLocaleString('id-ID');
+            } else {
+                document.getElementById('dendaBarangSection').style.display = 'none';
+            }
+
+            // Info keterlambatan
+            if (keterlambatan > 0) {
+                infoKeterlambatan.innerHTML = `
+                    <span style="color:#1c1917;font-weight:600;">
+                        Terlambat ${keterlambatan} hari &nbsp;·&nbsp; 
+                        Denda: Rp ${dendaKeterlambatan.toLocaleString('id-ID')}
+                    </span>
+                `;
+            } else {
+                infoKeterlambatan.innerHTML = '<span style="color:#6e665e;">Tepat waktu</span>';
+            }
+
+            dendaBreakdown.style.display = 'block';
         }
 
-        peminjamanSelect.addEventListener('change', hitungKeterlambatan);
-        tanggalKembali.addEventListener('change', hitungKeterlambatan);
+        // Trigger calculation on change
+        peminjamanSelect.addEventListener('change', hitungDenda);
+        tanggalKembali.addEventListener('change', hitungDenda);
+        kondisiSelect.addEventListener('change', hitungDenda);
 
         window.onclick = function(event) {
             const modal = document.getElementById('pengembalianModal');
