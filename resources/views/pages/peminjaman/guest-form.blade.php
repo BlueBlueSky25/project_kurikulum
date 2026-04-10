@@ -883,24 +883,28 @@ function showInstallPrompt() {
     installBtn = document.createElement('button');
     installBtn.id = 'installButton';
     
-    // ✅ STYLING DIPERBAIKI
-    installBtn.innerHTML = '<i class="fas fa-download text-sm mr-2"></i><span>Install App</span>';
-    installBtn.className = 'relative overflow-hidden bg-espresso hover:bg-ink px-6 py-2.5 font-sans text-[0.7rem] font-semibold tracking-[0.1em] uppercase text-paper transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95';
+    // ✅ ICON ONLY - KECIL & SIMPLE
+    installBtn.innerHTML = '<i class="fas fa-download"></i>';
+    installBtn.className = 'text-paper hover:text-espresso transition-colors duration-200 ml-4';
+    installBtn.title = 'Install App';
     installBtn.style.cssText = `
       display: none;
-      position: relative;
-      margin-left: auto;
-      margin-right: 16px;
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0;
     `;
     
-    const navbar = document.querySelector('nav');
-    if (navbar) {
-      navbar.appendChild(installBtn);
+    // Append ke navbar, sebelah LOGIN ADMIN button
+    const loginBtn = document.querySelector('a[href*="login"]');
+    if (loginBtn) {
+      loginBtn.parentElement.insertBefore(installBtn, loginBtn);
     }
   }
   
   if (deferredPrompt && installBtn) {
-    installBtn.style.display = 'inline-flex';
+    installBtn.style.display = 'inline-block';
     
     installBtn.addEventListener('click', async () => {
       deferredPrompt.prompt();
