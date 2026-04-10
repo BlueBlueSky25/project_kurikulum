@@ -225,40 +225,50 @@
                 </thead>
                 <tbody class="divide-y divide-rule">
                     @foreach($peminjamanAktif as $item)
-                        @php
-                            // ✅ Parse jam dari format "HH:MM - HH:MM"
-                            $jamMulai = explode(' - ', $item->jam_peminjaman)[0] ?? '-';
-                            $jamSelesai = explode(' - ', $item->jam_kembali)[0] ?? '-';
-                            
-                            // ✅ Mapping jam pelajaran
-                            $jamPelajaran = [
-                                '07:00' => 1,
-                                '08:30' => 2,
-                                '10:00' => 3,
-                                '11:30' => 4,
-                                '13:00' => 5,
-                                '14:30' => 6,
-                            ];
-                            
-                            $jamMulaiNum = $jamPelajaran[$jamMulai] ?? null;
-                            $jamSelesaiNum = $jamPelajaran[$jamSelesai] ?? null;
-                            
-                            // ✅ Hitung durasi jam pelajaran
-                            $durasiJam = ($jamSelesaiNum && $jamMulaiNum) 
-                                ? ($jamSelesaiNum - $jamMulaiNum) 
-                                : 'N/A';
-                            
-                            // ✅ Cek status (belum kembali atau terlambat)
-                            $now = now();
-                            $jamSelesaiTime = \Carbon\Carbon::createFromFormat(
-                                'Y-m-d H:i',
-                                $item->tanggal_kembali_rencana->format('Y-m-d') . ' ' . $jamSelesai,
-                                'Asia/Jakarta'
-                            );
-                            
-                            $isLate = $now->gt($jamSelesaiTime);
-                            $minutesLeft = $now->diffInMinutes($jamSelesaiTime, false);
-                        @endphp
+    @php
+        // ✅ Parse jam dari format "HH:MM - HH:MM"
+        $jamMulaiParts = explode(' - ', $item->jam_peminjaman);
+        $jamSelesaiParts = explode(' - ', $item->jam_kembali);
+        
+        $jamMulai = trim($jamMulaiParts[0] ?? '');
+        $jamSelesai = trim($jamSelesaiParts[0] ?? '');
+        
+        // ✅ Mapping jam pelajaran
+        $jamPelajaran = [
+            '07:00' => 1,
+            '08:30' => 2,
+            '10:00' => 3,
+            '11:30' => 4,
+            '13:00' => 5,
+            '14:30' => 6,
+        ];
+        
+        $jamMulaiNum = $jamPelajaran[$jamMulai] ?? null;
+        $jamSelesaiNum = $jamPelajaran[$jamSelesai] ?? null;
+        
+        // ✅ Hitung durasi jam pelajaran
+        $durasiJam = ($jamSelesaiNum && $jamMulaiNum) 
+            ? ($jamSelesaiNum - $jamMulaiNum) 
+            : 'N/A';
+        
+        // ✅ Cek status (belum kembali atau terlambat) - FIXED
+        $now = now();
+        
+        // Parse jam dengan aman
+        $jamSelesaiTimeStr = $item->tanggal_kembali_rencana->format('Y-m-d') . ' ' . $jamSelesai;
+        
+        try {
+            $jamSelesaiTime = \Carbon\Carbon::createFromFormat(
+                'Y-m-d H:i',
+                $jamSelesaiTimeStr
+            );
+        } catch (\Exception $e) {
+            $jamSelesaiTime = $now->copy(); // Fallback ke now jika parsing gagal
+        }
+        
+        $isLate = $now->gt($jamSelesaiTime);
+        $minutesLeft = $now->diffInMinutes($jamSelesaiTime, false);
+    @endphp
                         
                         <tr class="hover:bg-cream/40 transition-colors duration-100
                             @if($isLate) bg-espresso/[0.03] @elseif($minutesLeft <= 0) bg-dim/[0.03] @endif">
