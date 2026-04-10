@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>@yield('title', 'Dashboard') - Sistem Peminjaman Alat</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -11,7 +11,9 @@
     {{-- ✅ PWA META TAGS --}}
     <meta name="theme-color" content="#1c1917">
     <meta name="description" content="Aplikasi Peminjaman Alat Sekolah - Akses Offline Tersedia">
-    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Peminjaman Alat">
+    
+    {{-- Apple specific --}}
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Peminjaman Alat">
@@ -23,11 +25,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
-
-    
-
-
-
+    <link rel="shortcut icon" href="/favicon.ico">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -62,9 +60,12 @@
             }
         }
     </script>
+    
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('head')
 </head>
+
+
 <body class="bg-cream font-sans min-h-screen">
 
     {{-- Header --}}
