@@ -10,7 +10,7 @@
     
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    
     <script>
         tailwind.config = {
             theme: {
@@ -174,7 +174,7 @@
                                 @enderror
                             </div>
 
-                                                        {{-- QR Scanner Input --}}
+                            {{-- QR Scanner Input --}}
                             <div>
                                 <label class="block font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-2.5">
                                     Scan QR Barang <span class="text-espresso">*</span>
@@ -185,8 +185,8 @@
                                     type="button"
                                     id="qr_scanner_btn"
                                     class="w-full px-4 py-3 bg-cream border border-rule font-sans text-[0.75rem] font-semibold tracking-[0.1em] uppercase text-ink
-                                           hover:border-espresso hover:bg-espresso/5 transition-all duration-200
-                                           flex items-center justify-center gap-2"
+                                        hover:border-espresso hover:bg-espresso/5 transition-all duration-200
+                                        flex items-center justify-center gap-2"
                                 >
                                     <i class="fas fa-camera text-[0.8rem]"></i>
                                     <span>Buka Kamera - Scan QR</span>
@@ -305,7 +305,7 @@
                             </div>
 
 
-                                                        {{-- ✅ COLLAPSIBLE: Barang yang Dipinjam --}}
+                            {{-- ✅ COLLAPSIBLE: Barang yang Dipinjam --}}
                             <div class="bg-cream border border-rule">
                                 {{-- Header (Collapsible) --}}
                                 <button
@@ -327,8 +327,8 @@
                                         type="button"
                                         id="qr_scanner_btn"
                                         class="w-full px-4 py-3 bg-cream border border-rule font-sans text-[0.75rem] font-semibold tracking-[0.1em] uppercase text-ink
-                                               hover:border-espresso hover:bg-espresso/5 transition-all duration-200
-                                               flex items-center justify-center gap-2"
+                                            hover:border-espresso hover:bg-espresso/5 transition-all duration-200
+                                            flex items-center justify-center gap-2"
                                     >
                                         <i class="fas fa-camera text-[0.8rem]"></i>
                                         <span>Buka Kamera - Scan QR</span>
@@ -525,450 +525,270 @@
 
 
 
-        <script>
-        const qrScannerBtn = document.getElementById('qr_scanner_btn');
-        const qrStatus = document.getElementById('qr_status');
-        const alatTerpilih = document.getElementById('alat_terpilih');
-        const alatIdInput = document.getElementById('alat_id_input');
+        <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script>
+    // ✅ VARIABLES (hanya 1 kali deklarasi)
+    let video = null;
+    let canvas = null;
+    let stream = null;
+    let isScanning = false;
+    let scannedUnits = [];
 
-        let video = null;
-        let canvas = null;
-        let stream = null;
-        let isScanning = false;
+    // ✅ DOM ELEMENTS
+    const qrStatus = document.getElementById('qr_status');
+    const scannedItems = document.getElementById('scanned_items');
+    const itemsCount = document.getElementById('items-count');
+    const alatIdInput = document.getElementById('alat_id_input');
+    const tanggalPinjamInput = document.getElementById('tanggal_pinjam_input');
+    const alatTerpilih = document.getElementById('alat_terpilih');
 
-        // ✅ UPDATED: Click button untuk start camera
-        qrScannerBtn.addEventListener('click', function(e) {
+    // Set tanggal
+    if (tanggalPinjamInput) {
+        tanggalPinjamInput.value = new Date().toISOString().split('T')[0];
+    }
+
+    // ✅ EVENT LISTENERS untuk KEDUA button
+    const qrScannerButtons = document.querySelectorAll('#qr_scanner_btn');
+    qrScannerButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
             e.preventDefault();
+            console.log('Button clicked, starting camera...');
             startCamera();
         });
+    });
 
-        function startCamera() {
-            if (isScanning || video) return;
-            
-            isScanning = true;
-
-            // Buat video element
-            video = document.createElement('video');
-            video.setAttribute('id', 'qr_video');
-            video.setAttribute('style', 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;object-fit:cover;');
-            document.body.appendChild(video);
-
-            // Buat close button
-            const closeBtn = document.createElement('button');
-            closeBtn.innerHTML = '✕ Tutup Kamera';
-            closeBtn.setAttribute('type', 'button');
-            closeBtn.setAttribute('style', 'position:fixed;top:20px;right:20px;z-index:10000;padding:10px 20px;background:#1c1917;color:#fffdf9;border:none;cursor:pointer;font-weight:bold;border-radius:5px;font-size:14px;');
-            closeBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                stopCamera();
-            });
-            document.body.appendChild(closeBtn);
-
-            // Buat canvas element
-            canvas = document.createElement('canvas');
-            canvas.setAttribute('id', 'qr_canvas');
-            canvas.setAttribute('style', 'display:none;');
-            document.body.appendChild(canvas);
-
-            // Request camera access
-            navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: 'environment',
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                } 
-            }).then(function(s) {
-                stream = s;
-                video.srcObject = stream;
-                video.setAttribute('autoplay', 'true');
-                video.setAttribute('playsinline', 'true');
-                video.play();
-
-                qrStatus.textContent = '📹 Arahkan kamera ke QR code...';
-                qrStatus.style.color = '#1c1917';
-
-                // Tunggu video siap
-                setTimeout(() => {
-                    scanQrCode();
-                }, 500);
-            }).catch(function(err) {
-                console.error('Camera error:', err);
-                qrStatus.textContent = '❌ Error: ' + err.message;
-                qrStatus.style.color = '#b23d3d';
-                isScanning = false;
-                
-                // Cleanup
-                if (closeBtn) closeBtn.remove();
-            });
+    // ✅ FUNGSI - HANYA 1 KALI
+    function startCamera() {
+        if (isScanning || video) {
+            console.warn('Camera already running');
+            return;
         }
+        
+        console.log('Starting camera...');
+        isScanning = true;
 
-        function scanQrCode() {
-            if (!video || !canvas || !isScanning) return;
+        // Create video element
+        video = document.createElement('video');
+        video.id = 'qr_video';
+        video.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;object-fit:cover;';
+        document.body.appendChild(video);
 
-            const ctx = canvas.getContext('2d');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-
-            if (canvas.width === 0 || canvas.height === 0) {
-                requestAnimationFrame(scanQrCode);
-                return;
-            }
-
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height);
-
-            if (code) {
-                console.log('QR Detected:', code.data);
-                stopCamera();
-                processQrData(code.data);
-            } else {
-                requestAnimationFrame(scanQrCode);
-            }
-        }
-
-        function processQrData(qrData) {
-            console.log('Processing QR Data:', qrData);
-            
-            fetch('/api/scan-qr', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: JSON.stringify({
-                    qr_data: qrData
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Response:', data);
-                
-                if (data.success) {
-                    const alat = data.alat;
-                    
-                    // Display barang yang ter-scan
-                    document.getElementById('alat_nama').textContent = alat.nama_alat;
-                    
-                    // Handle unit display
-                    const unitText = alat.unit_number 
-                        ? `Unit ${alat.unit_number}` 
-                        : (alat.nomor_unit || '—');
-                    document.getElementById('alat_unit').textContent = unitText;
-                    
-                    // Handle stok display
-                    const stokTersedia = alat.stok_tersedia || 0;
-                    document.getElementById('alat_stok').textContent = stokTersedia + ' unit';
-                    
-                    // Handle harga display
-                    const harga = parseFloat(alat.harga_alat) || 0;
-                    document.getElementById('alat_harga').textContent = 'Rp ' + formatCurrency(harga);
-
-                    alatIdInput.value = alat.alat_id;
-                    document.getElementById('alat_terpilih').style.display = 'block';
-
-                    qrStatus.textContent = '✓ Barang terdeteksi!';
-                    qrStatus.style.color = '#1c1917';
-
-                    // Update jumlah maksimal
-                    const maxJumlah = Math.max(stokTersedia, 1);
-                    document.getElementById('jumlah_input').max = maxJumlah;
-                    document.getElementById('jumlah_input').value = 1;
-                    document.getElementById('stok_info').textContent = 'Maksimal: ' + maxJumlah + ' unit tersedia';
-
-                    // ✅ UPDATED: Ubah tombol state setelah scan berhasil
-                    qrScannerBtn.innerHTML = '<i class="fas fa-check text-[0.8rem]"></i><span>QR Terdeteksi ✓</span>';
-                    qrScannerBtn.style.borderColor = '#1c1917';
-                    qrScannerBtn.style.backgroundColor = '#1c1917';
-                    qrScannerBtn.style.color = '#fffdf9';
-
-                } else {
-                    qrStatus.textContent = '❌ ' + data.message;
-                    qrStatus.style.color = '#b23d3d';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                qrStatus.textContent = '❌ Error: ' + error.message;
-                qrStatus.style.color = '#b23d3d';
-            });
-        }
-
-        function stopCamera() {
-            isScanning = false;
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                stream = null;
-            }
-            if (video) {
-                video.remove();
-                video = null;
-            }
-            if (canvas) {
-                canvas.remove();
-                canvas = null;
-            }
-            
-            // Hapus close button
-            const closeBtn = document.querySelector('button[style*="position:fixed"]');
-            if (closeBtn) closeBtn.remove();
-        }
-
-        function clearQrScan() {
+        // Create close button
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.innerHTML = '✕ Tutup Kamera';
+        closeBtn.style.cssText = 'position:fixed;top:20px;right:20px;z-index:10000;padding:10px 20px;background:#1c1917;color:#fffdf9;border:none;cursor:pointer;font-weight:bold;border-radius:5px;font-size:14px;';
+        closeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
             stopCamera();
-            alatIdInput.value = '';
-            document.getElementById('alat_terpilih').style.display = 'none';
-            qrStatus.textContent = '';
-            
-            // ✅ UPDATED: Reset tombol ke state awal
-            qrScannerBtn.innerHTML = '<i class="fas fa-camera text-[0.8rem]"></i><span>Buka Kamera - Scan QR</span>';
-            qrScannerBtn.style.borderColor = '';
-            qrScannerBtn.style.backgroundColor = '';
-            qrScannerBtn.style.color = '';
-        }
-
-        function formatCurrency(value) {
-            return new Intl.NumberFormat('id-ID').format(value);
-        }
-
-                // ✅ NEW: Toggle items list
-        function toggleItemsList() {
-            const itemsContainer = document.getElementById('items-container');
-            const listIcon = document.getElementById('list-icon');
-            const isHidden = itemsContainer.style.display === 'none';
-            
-            itemsContainer.style.display = isHidden ? 'block' : 'none';
-            listIcon.style.transform = isHidden ? 'rotate(90deg)' : 'rotate(0deg)';
-        }
-
-        // ✅ NEW: Store scanned units
-        let scannedUnits = [];
-
-        // Set tanggal peminjaman ke hari ini
-        document.getElementById('tanggal_pinjam_input').value = new Date().toISOString().split('T')[0];
-
-        const qrScannerBtn = document.getElementById('qr_scanner_btn');
-        const qrStatus = document.getElementById('qr_status');
-        const scannedItems = document.getElementById('scanned_items');
-        const itemsCount = document.getElementById('items-count');
-        const alatTerpilih = document.getElementById('alat_terpilih');
-        const alatIdInput = document.getElementById('alat_id_input');
-
-        let video = null;
-        let canvas = null;
-        let stream = null;
-        let isScanning = false;
-
-        qrScannerBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            startCamera();
         });
+        document.body.appendChild(closeBtn);
 
-        function startCamera() {
-            if (isScanning || video) return;
+        // Create canvas
+        canvas = document.createElement('canvas');
+        canvas.id = 'qr_canvas';
+        canvas.style.display = 'none';
+        document.body.appendChild(canvas);
+
+        // Request camera
+        navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: 'environment',
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            }
+        })
+        .then(s => {
+            console.log('✓ Camera stream obtained');
+            stream = s;
+            video.srcObject = stream;
+            video.setAttribute('autoplay', 'true');
+            video.setAttribute('playsinline', 'true');
             
-            isScanning = true;
-
-            video = document.createElement('video');
-            video.setAttribute('id', 'qr_video');
-            video.setAttribute('style', 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;object-fit:cover;');
-            document.body.appendChild(video);
-
-            const closeBtn = document.createElement('button');
-            closeBtn.innerHTML = '✕ Tutup Kamera';
-            closeBtn.setAttribute('type', 'button');
-            closeBtn.setAttribute('style', 'position:fixed;top:20px;right:20px;z-index:10000;padding:10px 20px;background:#1c1917;color:#fffdf9;border:none;cursor:pointer;font-weight:bold;border-radius:5px;font-size:14px;');
-            closeBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                stopCamera();
-            });
-            document.body.appendChild(closeBtn);
-
-            canvas = document.createElement('canvas');
-            canvas.setAttribute('id', 'qr_canvas');
-            canvas.setAttribute('style', 'display:none;');
-            document.body.appendChild(canvas);
-
-            navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: 'environment',
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                } 
-            }).then(function(s) {
-                stream = s;
-                video.srcObject = stream;
-                video.setAttribute('autoplay', 'true');
-                video.setAttribute('playsinline', 'true');
+            video.onloadedmetadata = () => {
                 video.play();
-
-                qrStatus.textContent = '📹 Arahkan kamera ke QR code...';
-                qrStatus.style.color = '#1c1917';
-
-                setTimeout(() => {
-                    scanQrCode();
-                }, 500);
-            }).catch(function(err) {
-                console.error('Camera error:', err);
+                console.log('✓ Video playing');
+                
+                if (qrStatus) {
+                    qrStatus.textContent = '📹 Arahkan kamera ke QR code...';
+                    qrStatus.style.color = '#1c1917';
+                }
+                
+                scanQrCode();
+            };
+        })
+        .catch(err => {
+            console.error('❌ Camera error:', err);
+            if (qrStatus) {
                 qrStatus.textContent = '❌ Error: ' + err.message;
                 qrStatus.style.color = '#b23d3d';
-                isScanning = false;
-                if (closeBtn) closeBtn.remove();
-            });
+            }
+            isScanning = false;
+            closeBtn.remove();
+        });
+    }
+
+    function scanQrCode() {
+        if (!video || !canvas || !isScanning) {
+            console.log('Scan stopped');
+            return;
         }
 
-        function scanQrCode() {
-            if (!video || !canvas || !isScanning) return;
-
-            const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d');
+        
+        if (video.videoWidth && video.videoHeight) {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-
-            if (canvas.width === 0 || canvas.height === 0) {
-                requestAnimationFrame(scanQrCode);
-                return;
-            }
-
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const code = jsQR(imageData.data, imageData.width, imageData.height);
 
             if (code) {
-                console.log('QR Detected:', code.data);
+                console.log('✓ QR Detected:', code.data);
                 stopCamera();
                 processQrData(code.data);
-            } else {
-                requestAnimationFrame(scanQrCode);
+                return;
             }
         }
 
-        function processQrData(qrData) {
-            console.log('Processing QR Data:', qrData);
+        requestAnimationFrame(scanQrCode);
+    }
+
+    function processQrData(qrData) {
+        console.log('Processing QR Data:', qrData);
+        
+        fetch('/api/scan-qr', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ qr_data: qrData })
+        })
+        .then(r => r.json())
+        .then(data => {
+            console.log('✓ API Response:', data);
             
-            fetch('/api/scan-qr', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: JSON.stringify({
-                    qr_data: qrData
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Response:', data);
+            if (data.success) {
+                const alat = data.alat;
                 
-                if (data.success) {
-                    const alat = data.alat;
-
-                    // ✅ Check if already scanned
-                    const exists = scannedUnits.some(u => u.alat_unit_id === alat.alat_unit_id);
-                    
-                    if (exists) {
-                        qrStatus.textContent = '⚠️ Unit ini sudah di-scan!';
+                // Check duplicate
+                const exists = scannedUnits.some(u => u.alat_unit_id === alat.alat_unit_id);
+                if (exists) {
+                    if (qrStatus) {
+                        qrStatus.textContent = '⚠️ Unit sudah di-scan!';
                         qrStatus.style.color = '#e8a87c';
-                        return;
                     }
+                    return;
+                }
 
-                    // ✅ Add to scanned units
-                    scannedUnits.push(alat);
-                    
-                    // Update hidden input
-                    if (scannedUnits.length === 1) {
-                        alatIdInput.value = alat.alat_id;
-                    }
+                // Add to list
+                scannedUnits.push(alat);
+                
+                if (scannedUnits.length === 1) {
+                    alatIdInput.value = alat.alat_id;
+                }
 
-                    renderScannedItems();
+                renderScannedItems();
+                
+                if (qrStatus) {
                     qrStatus.textContent = `✓ ${alat.nama_alat} Unit ${alat.unit_number} ditambahkan!`;
                     qrStatus.style.color = '#1c1917';
+                }
 
-                } else {
+            } else {
+                if (qrStatus) {
                     qrStatus.textContent = '❌ ' + data.message;
                     qrStatus.style.color = '#b23d3d';
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
+            }
+        })
+        .catch(error => {
+            console.error('❌ Error:', error);
+            if (qrStatus) {
                 qrStatus.textContent = '❌ Error: ' + error.message;
                 qrStatus.style.color = '#b23d3d';
-            });
+            }
+        });
+    }
+
+    function renderScannedItems() {
+        if (itemsCount) {
+            itemsCount.textContent = `${scannedUnits.length} item${scannedUnits.length !== 1 ? 's' : ''}`;
         }
 
-        function renderScannedItems() {
-            itemsCount.textContent = `${scannedUnits.length} item${scannedUnits.length !== 1 ? 's' : ''}`;
-
+        if (scannedItems) {
             if (scannedUnits.length === 0) {
                 scannedItems.innerHTML = '<p class="font-sans text-[0.65rem] text-label text-center py-3">Belum ada barang yang di-scan</p>';
                 return;
             }
 
-            let html = '';
-            scannedUnits.forEach((unit, index) => {
-                html += `
-                    <div class="bg-sand px-3 py-2.5 rounded flex items-center justify-between hover:bg-sand/80 transition-colors">
-                        <div class="flex-1 min-w-0">
-                            <p class="font-sans text-[0.68rem] font-semibold text-ink truncate">
-                                ${unit.nama_alat}
-                            </p>
-                            <p class="font-sans text-[0.6rem] text-label">
-                                Unit ${unit.unit_number}
-                            </p>
-                        </div>
-                        <button
-                            type="button"
-                            onclick="removeItem(${index})"
-                            class="ml-2 px-2 py-1 bg-espresso text-paper text-[0.5rem] font-semibold
-                                   hover:bg-ink transition-all flex-shrink-0 rounded"
-                        >
-                            <i class="fas fa-trash text-xs"></i>
-                        </button>
+            scannedItems.innerHTML = scannedUnits.map((unit, i) => `
+                <div class="bg-sand px-3 py-2.5 rounded flex items-center justify-between">
+                    <div class="flex-1 min-w-0">
+                        <p class="font-sans text-[0.68rem] font-semibold text-ink truncate">${unit.nama_alat}</p>
+                        <p class="font-sans text-[0.6rem] text-label">Unit ${unit.unit_number}</p>
                     </div>
-                `;
-            });
-
-            scannedItems.innerHTML = html;
+                    <button type="button" onclick="removeItem(${i})" class="ml-2 px-2 py-1 bg-espresso text-paper text-[0.5rem] font-semibold rounded hover:bg-ink">
+                        <i class="fas fa-trash text-xs"></i>
+                    </button>
+                </div>
+            `).join('');
         }
+    }
 
-        function removeItem(index) {
-            scannedUnits.splice(index, 1);
-            if (scannedUnits.length === 0) {
-                alatIdInput.value = '';
-            } else {
-                alatIdInput.value = scannedUnits[0].alat_id;
-            }
-            renderScannedItems();
+    function removeItem(index) {
+        scannedUnits.splice(index, 1);
+        if (scannedUnits.length === 0) {
+            alatIdInput.value = '';
+        } else {
+            alatIdInput.value = scannedUnits[0].alat_id;
         }
+        renderScannedItems();
+    }
 
-        function stopCamera() {
-            isScanning = false;
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                stream = null;
-            }
-            if (video) {
-                video.remove();
-                video = null;
-            }
-            if (canvas) {
-                canvas.remove();
-                canvas = null;
-            }
-            
-            const closeBtn = document.querySelector('button[style*="position:fixed"]');
-            if (closeBtn) closeBtn.remove();
+    function stopCamera() {
+        console.log('Stopping camera...');
+        isScanning = false;
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
         }
-
-        function formatCurrency(value) {
-            return new Intl.NumberFormat('id-ID').format(value);
+        if (video) {
+            video.remove();
+            video = null;
         }
+        if (canvas) {
+            canvas.remove();
+            canvas = null;
+        }
+        
+        const closeBtn = document.querySelector('button[style*="position:fixed"]');
+        if (closeBtn) closeBtn.remove();
+    }
 
+    function toggleItemsList() {
+        const container = document.getElementById('items-container');
+        const icon = document.getElementById('list-icon');
+        if (!container) return;
+        
+        const isHidden = container.style.display === 'none';
+        container.style.display = isHidden ? 'block' : 'none';
+        if (icon) icon.style.transform = isHidden ? 'rotate(90deg)' : 'rotate(0deg)';
+    }
 
-        // Cleanup saat halaman ditutup
-        window.addEventListener('beforeunload', stopCamera);
-    </script>
+    function formatCurrency(value) {
+        return new Intl.NumberFormat('id-ID').format(value);
+    }
+
+    // Cleanup
+    window.addEventListener('beforeunload', stopCamera);
+
+    // Log untuk debugging
+    console.log('✓ Script loaded');
+    console.log('QR Scanner buttons found:', document.querySelectorAll('#qr_scanner_btn').length);
+</script>
 
 </body>
 </html>
