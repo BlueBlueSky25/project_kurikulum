@@ -19,7 +19,7 @@
     <meta name="apple-mobile-web-app-title" content="Peminjaman Alat">
     
    {{-- ✅ MANIFEST --}}
-<link rel="manifest" href="{{ url('/manifest.json') }}">
+<link rel="manifest" href="{{ url('/app-manifest.json') }}">
 
 {{-- ✅ APP ICONS --}}
 <link rel="icon" type="image/png" sizes="192x192" href="{{ url('/icons/icon-192.png') }}">
