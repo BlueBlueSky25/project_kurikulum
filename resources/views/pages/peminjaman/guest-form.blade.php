@@ -150,281 +150,265 @@
                             </h3>
                         </div>
 
-                        {{-- Form Body --}}
-                        <form action="{{ route('peminjaman.guest.store') }}" method="POST" id="peminjamanForm" class="px-6 py-6 space-y-6">
-                            @csrf
+                        {{-- ✅ FORM BODY - SUDAH DIPERBAIKI --}}
+                            {{-- ✅ FORM BODY - DENGAN COLLAPSIBLE MULTI-ITEM --}}
+<form action="{{ route('peminjaman.guest.store') }}" method="POST" id="peminjamanForm" class="px-6 py-6 space-y-6">
+    @csrf
 
-                            {{-- Nama Lengkap --}}
-                            <div class="relative">
-                                <label class="block font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-2.5">
-                                    Nama Lengkap <span class="text-espresso">*</span>
-                                </label>
-                                <input
-                                    type="text" 
-                                    name="nama_peminjam_guest" 
-                                    value="{{ old('nama_peminjam_guest') }}" 
-                                    required
-                                    placeholder="Masukkan nama lengkap"
-                                    class="peer w-full bg-transparent border-b border-rule pb-2.5 pt-1 font-sans text-[0.85rem] text-ink outline-none placeholder-ghost/60 transition-colors duration-200 focus:border-ink"
-                                >
-                                <span class="absolute bottom-0 left-0 h-px w-0 bg-ink transition-all duration-300 peer-focus:w-full"></span>
-                                @error('nama_peminjam_guest')
-                                    <p class="font-sans text-[0.65rem] text-espresso mt-1.5">{{ $message }}</p>
-                                @enderror
-                            </div>
+    {{-- Nama Lengkap --}}
+    <div class="relative">
+        <label class="block font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-2.5">
+            Nama Lengkap <span class="text-espresso">*</span>
+        </label>
+        <input
+            type="text" 
+            name="nama_peminjam_guest" 
+            value="{{ old('nama_peminjam_guest') }}" 
+            required
+            placeholder="Masukkan nama lengkap"
+            class="peer w-full bg-transparent border-b border-rule pb-2.5 pt-1 font-sans text-[0.85rem] text-ink outline-none placeholder-ghost/60 transition-colors duration-200 focus:border-ink"
+        >
+        <span class="absolute bottom-0 left-0 h-px w-0 bg-ink transition-all duration-300 peer-focus:w-full"></span>
+        @error('nama_peminjam_guest')
+            <p class="font-sans text-[0.65rem] text-espresso mt-1.5">{{ $message }}</p>
+        @enderror
+    </div>
 
-                                {{-- Kelas --}}
-                            <div>
-                                <label class="block font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-2.5">
-                                    Kelas <span class="text-espresso">*</span>
-                                </label>
-                                <div class="relative">
-                                    <select
-                                        name="kelas" id="kelas_select" required
-                                        class="w-full appearance-none bg-cream border border-rule px-3 py-2.5 font-sans text-[0.82rem] text-ink outline-none focus:border-ink transition-colors duration-200"
-                                    >
-                                        <option value="">Pilih Kelas</option>
-                                        <option value="10-A">10-A</option>
-                                        <option value="10-B">10-B</option>
-                                        <option value="10-C">10-C</option>
-                                        <option value="11-A">11-A</option>
-                                        <option value="11-B">11-B</option>
-                                        <option value="11-C">11-C</option>
-                                        <option value="12-A">12-A</option>
-                                        <option value="12-B">12-B</option>
-                                        <option value="12-C">12-C</option>
-                                    </select>
-                                    <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-ghost text-[0.55rem] pointer-events-none"></i>
-                                </div>
-                                @error('kelas')
-                                    <p class="font-sans text-[0.65rem] text-espresso mt-1.5">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            {{-- QR Scanner Input --}}
-                            <div>
-                                <label class="block font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-2.5">
-                                    Scan QR Barang <span class="text-espresso">*</span>
-                                </label>
-                                
-                                {{-- ✅ UPDATED: Tombol Scanner (bukan input) --}}
-                                <button
-                                    type="button"
-                                    id="qr_scanner_btn"
-                                    class="w-full px-4 py-3 bg-cream border border-rule font-sans text-[0.75rem] font-semibold tracking-[0.1em] uppercase text-ink
-                                        hover:border-espresso hover:bg-espresso/5 transition-all duration-200
-                                        flex items-center justify-center gap-2"
-                                >
-                                    <i class="fas fa-camera text-[0.8rem]"></i>
-                                    <span>Buka Kamera - Scan QR</span>
-                                </button>
-                                
-                                <p id="qr_status" class="font-sans text-[0.62rem] text-label mt-1.5"></p>
-                            </div>
-
-                            {{-- Hidden input untuk alat_id --}}
-                            <input type="hidden" name="alat_id" id="alat_id_input">
-
-                            {{-- Display Alat yang ter-scan --}}
-                            <div id="alat_terpilih" style="display: none;" class="bg-cream px-4 py-3 border border-rule rounded mb-4">
-                                <p class="font-sans text-[0.65rem] font-semibold tracking-[0.2em] uppercase text-label mb-2">
-                                    Barang Terpilih ✓
-                                </p>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <p class="font-sans text-[0.55rem] text-ghost mb-0.5">Nama</p>
-                                        <p id="alat_nama" class="font-sans text-[0.8rem] font-semibold text-ink">—</p>
-                                    </div>
-                                    <div>
-                                        <p class="font-sans text-[0.55rem] text-ghost mb-0.5">Unit</p>
-                                        <p id="alat_unit" class="font-sans text-[0.8rem] font-semibold text-ink">—</p>
-                                    </div>
-                                    <div>
-                                        <p class="font-sans text-[0.55rem] text-ghost mb-0.5">Stok</p>
-                                        <p id="alat_stok" class="font-sans text-[0.8rem] font-semibold text-ink">—</p>
-                                    </div>
-                                    <div>
-                                        <p class="font-sans text-[0.55rem] text-ghost mb-0.5">Harga</p>
-                                        <p id="alat_harga" class="font-sans text-[0.8rem] font-semibold text-ink">—</p>
-                                    </div>
-                                </div>
-                                <button type="button" onclick="clearQrScan()" class="mt-3 w-full text-center border border-rule text-label px-3 py-2 font-sans text-[0.65rem] font-semibold tracking-[0.1em] uppercase hover:border-espresso hover:text-espresso transition-all">
-                                    Scan Ulang
-                                </button>
-                            </div>
-
-                            {{-- Jumlah (auto-fill ke 1) --}}
-                            <div class="relative">
-                                <label class="block font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-2.5">
-                                    Jumlah <span class="text-espresso">*</span>
-                                </label>
-                                <input
-                                    type="number" id="jumlah_input" name="jumlah" min="1" required value="1"
-                                    placeholder="Jumlah unit yang dipinjam"
-                                    class="peer w-full bg-transparent border-b border-rule pb-2.5 pt-1 font-sans text-[0.85rem] text-ink outline-none placeholder-ghost/60 transition-colors duration-200 focus:border-ink"
-                                >
-                                <span class="absolute bottom-0 left-0 h-px w-0 bg-ink transition-all duration-300 peer-focus:w-full"></span>
-                                <p id="stok_info" class="font-sans text-[0.62rem] text-label mt-1.5"></p>
-                                @error('jumlah')
-                                    <p class="font-sans text-[0.65rem] text-espresso mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-
-                            {{-- Mata Pelajaran --}}
-                            <div>
-                                <label class="block font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-2.5">
-                                    Mata Pelajaran <span class="text-espresso">*</span>
-                                </label>
-                                <div class="relative">
-                                    <select
-                                        name="mata_pelajaran" id="mata_pelajaran_select" required
-                                        class="w-full appearance-none bg-cream border border-rule px-3 py-2.5 font-sans text-[0.82rem] text-ink outline-none focus:border-ink transition-colors duration-200"
-                                    >
-                                        <option value="">Pilih Mata Pelajaran</option>
-                                        <option value="Matematika">Matematika</option>
-                                        <option value="Bahasa Indonesia">Bahasa Indonesia</option>
-                                        <option value="Bahasa Inggris">Bahasa Inggris</option>
-                                        <option value="Fisika">Fisika</option>
-                                        <option value="Kimia">Kimia</option>
-                                        <option value="Biologi">Biologi</option>
-                                        <option value="Sejarah">Sejarah</option>
-                                        <option value="Geografi">Geografi</option>
-                                        <option value="Ekonomi">Ekonomi</option>
-                                        <option value="Sosiologi">Sosiologi</option>
-                                        <option value="Seni">Seni</option>
-                                        <option value="Olahraga">Olahraga</option>
-                                        <option value="TIK">TIK</option>
-                                        <option value="Lainnya">Lainnya</option>
-                                    </select>
-                                    <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-ghost text-[0.55rem] pointer-events-none"></i>
-                                </div>
-                                @error('mata_pelajaran')
-                                    <p class="font-sans text-[0.65rem] text-espresso mt-1.5">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-
-                            {{-- ✅ COLLAPSIBLE: Barang yang Dipinjam --}}
-                            <div class="bg-cream border border-rule">
-                                {{-- Header (Collapsible) --}}
-                                <button
-                                    type="button"
-                                    onclick="toggleItemsList()"
-                                    class="w-full px-4 py-3 flex items-center justify-between hover:bg-cream/60 transition-colors"
-                                >
-                                    <div class="flex items-center gap-2">
-                                        <i class="fas fa-chevron-right text-[0.7rem] text-label transition-transform duration-300" id="list-icon"></i>
-                                        <span class="font-sans text-[0.7rem] font-semibold text-ink">BARANG YANG DIPINJAM</span>
-                                    </div>
-                                    <span class="font-sans text-[0.7rem] font-semibold text-label" id="items-count">0 item</span>
-                                </button>
-
-                                {{-- Content (Hidden by default) --}}
-                                <div id="items-container" style="display: none;" class="px-4 py-3 border-t border-rule space-y-3">
-                                    {{-- Scan Button --}}
-                                    <button
-                                        type="button"
-                                        id="qr_scanner_btn"
-                                        class="w-full px-4 py-3 bg-cream border border-rule font-sans text-[0.75rem] font-semibold tracking-[0.1em] uppercase text-ink
-                                            hover:border-espresso hover:bg-espresso/5 transition-all duration-200
-                                            flex items-center justify-center gap-2"
-                                    >
-                                        <i class="fas fa-camera text-[0.8rem]"></i>
-                                        <span>Buka Kamera - Scan QR</span>
-                                    </button>
-
-                                    {{-- Items List --}}
-                                    <div id="scanned_items" class="space-y-2">
-                                        <p class="font-sans text-[0.65rem] text-label text-center py-3">
-                                            Belum ada barang yang di-scan
-                                        </p>
-                                    </div>
-
-                                    <p id="qr_status" class="font-sans text-[0.62rem] text-label mt-1.5"></p>
-                                </div>
-                            </div>
-
-                            {{-- Hidden inputs --}}
-                            <input type="hidden" name="alat_id" id="alat_id_input">
-                            <input type="hidden" name="jumlah" value="1">
-                            <input type="hidden" name="tanggal_peminjaman" id="tanggal_pinjam_input">
-
-                                                        {{-- ✅ UPDATED: Jam Pinjam & Jam Kembali (bukan tanggal) --}}
-                           <div class="grid grid-cols-2 gap-4">
-    {{-- Jam Mulai --}}
+    {{-- Kelas --}}
     <div>
         <label class="block font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-2.5">
-            Jam Mulai <span class="text-espresso">*</span>
+            Kelas <span class="text-espresso">*</span>
         </label>
         <div class="relative">
             <select
-                name="jam_peminjaman" id="jam_peminjaman_select" required
+                name="kelas" id="kelas_select" required
                 class="w-full appearance-none bg-cream border border-rule px-3 py-2.5 font-sans text-[0.82rem] text-ink outline-none focus:border-ink transition-colors duration-200"
             >
-                <option value="">Pilih Jam</option>
-                <option value="07:00 - 08:30">07:00 - 08:30 (Jam 1)</option>
-                <option value="08:30 - 10:00">08:30 - 10:00 (Jam 2)</option>
-                <option value="10:00 - 11:30">10:00 - 11:30 (Jam 3)</option>
-                <option value="11:30 - 13:00">11:30 - 13:00 (Jam 4)</option>
-                <option value="13:00 - 14:30">13:00 - 14:30 (Jam 5)</option>
-                <option value="14:30 - 16:00">14:30 - 16:00 (Jam 6)</option>
+                <option value="">Pilih Kelas</option>
+                <option value="10-A">10-A</option>
+                <option value="10-B">10-B</option>
+                <option value="10-C">10-C</option>
+                <option value="11-A">11-A</option>
+                <option value="11-B">11-B</option>
+                <option value="11-C">11-C</option>
+                <option value="12-A">12-A</option>
+                <option value="12-B">12-B</option>
+                <option value="12-C">12-C</option>
             </select>
             <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-ghost text-[0.55rem] pointer-events-none"></i>
         </div>
-        @error('jam_peminjaman')
+        @error('kelas')
             <p class="font-sans text-[0.65rem] text-espresso mt-1.5">{{ $message }}</p>
         @enderror
     </div>
 
-    {{-- Tanggal Kembali (DATE PICKER) --}}
+    {{-- QR Scanner (Initial) --}}
     <div>
         <label class="block font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-2.5">
-            Tanggal Kembali <span class="text-espresso">*</span>
+            Scan QR Barang <span class="text-espresso">*</span>
+        </label>
+        
+        <button
+            type="button"
+            id="qr_scanner_btn"
+            class="w-full px-4 py-3 bg-cream border border-rule font-sans text-[0.75rem] font-semibold tracking-[0.1em] uppercase text-ink
+                hover:border-espresso hover:bg-espresso/5 transition-all duration-200
+                flex items-center justify-center gap-2"
+        >
+            <i class="fas fa-camera text-[0.8rem]"></i>
+            <span>Buka Kamera - Scan QR</span>
+        </button>
+        
+        <p id="qr_status" class="font-sans text-[0.62rem] text-label mt-1.5"></p>
+    </div>
+
+    {{-- ✅ HANYA 1 HIDDEN INPUT untuk alat_id --}}
+    <input type="hidden" name="alat_id" id="alat_id_input" value="">
+
+    {{-- Jumlah --}}
+    <div class="relative">
+        <label class="block font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-2.5">
+            Jumlah <span class="text-espresso">*</span>
+        </label>
+        <input
+            type="number" id="jumlah_input" name="jumlah" min="1" required value="1"
+            placeholder="Jumlah unit yang dipinjam"
+            class="peer w-full bg-transparent border-b border-rule pb-2.5 pt-1 font-sans text-[0.85rem] text-ink outline-none placeholder-ghost/60 transition-colors duration-200 focus:border-ink"
+        >
+        <span class="absolute bottom-0 left-0 h-px w-0 bg-ink transition-all duration-300 peer-focus:w-full"></span>
+        <p id="stok_info" class="font-sans text-[0.62rem] text-label mt-1.5"></p>
+        @error('jumlah')
+            <p class="font-sans text-[0.65rem] text-espresso mt-1">{{ $message }}</p>
+        @enderror
+    </div>
+
+    {{-- Mata Pelajaran --}}
+    <div>
+        <label class="block font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-2.5">
+            Mata Pelajaran <span class="text-espresso">*</span>
         </label>
         <div class="relative">
-            <input
-                type="date"
-                name="tanggal_kembali_rencana" 
-                id="tanggal_kembali_input"
-                required
-                class="w-full bg-cream border border-rule px-3 py-2.5 font-sans text-[0.82rem] text-ink outline-none focus:border-ink transition-colors duration-200"
+            <select
+                name="mata_pelajaran" id="mata_pelajaran_select" required
+                class="w-full appearance-none bg-cream border border-rule px-3 py-2.5 font-sans text-[0.82rem] text-ink outline-none focus:border-ink transition-colors duration-200"
             >
+                <option value="">Pilih Mata Pelajaran</option>
+                <option value="Matematika">Matematika</option>
+                <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+                <option value="Bahasa Inggris">Bahasa Inggris</option>
+                <option value="Fisika">Fisika</option>
+                <option value="Kimia">Kimia</option>
+                <option value="Biologi">Biologi</option>
+                <option value="Sejarah">Sejarah</option>
+                <option value="Geografi">Geografi</option>
+                <option value="Ekonomi">Ekonomi</option>
+                <option value="Sosiologi">Sosiologi</option>
+                <option value="Seni">Seni</option>
+                <option value="Olahraga">Olahraga</option>
+                <option value="TIK">TIK</option>
+                <option value="Lainnya">Lainnya</option>
+            </select>
+            <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-ghost text-[0.55rem] pointer-events-none"></i>
         </div>
-        @error('tanggal_kembali_rencana')
+        @error('mata_pelajaran')
             <p class="font-sans text-[0.65rem] text-espresso mt-1.5">{{ $message }}</p>
         @enderror
     </div>
-</div>
 
-                            {{-- Tujuan --}}
-                            <div>
-                                <label class="block font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-2.5">
-                                    Tujuan Peminjaman
-                                </label>
-                                <textarea
-                                    name="tujuan_peminjaman" rows="3"
-                                    placeholder="Untuk keperluan..."
-                                    class="w-full bg-cream border border-rule px-3 py-2.5 font-sans text-[0.82rem] text-ink outline-none placeholder-ghost/60 focus:border-ink transition-colors duration-200"
-                                >{{ old('tujuan_peminjaman') }}</textarea>
-                            </div>
+    {{-- ✅ COLLAPSIBLE: Barang yang Dipinjam (MULTI-ITEM) --}}
+    <div class="bg-cream border border-rule">
+        {{-- Header (Collapsible) --}}
+        <button
+            type="button"
+            onclick="toggleItemsList()"
+            class="w-full px-4 py-3 flex items-center justify-between hover:bg-cream/60 transition-colors"
+        >
+            <div class="flex items-center gap-2">
+                <i class="fas fa-chevron-right text-[0.7rem] text-label transition-transform duration-300" id="list-icon"></i>
+                <span class="font-sans text-[0.7rem] font-semibold text-ink">BARANG YANG DIPINJAM</span>
+            </div>
+            <span class="font-sans text-[0.7rem] font-semibold text-label" id="items-count">0 item</span>
+        </button>
 
-                            {{-- Submit Button --}}
-                            <button
-                                type="submit"
-                                class="relative w-full overflow-hidden bg-espresso px-6 py-3.5
-                                       font-sans text-[0.6rem] font-semibold tracking-[0.25em] uppercase text-paper
-                                       flex items-center justify-center gap-2
-                                       transition-colors duration-200 hover:bg-ink active:scale-[0.99]
-                                       after:content-[''] after:absolute after:inset-0 after:bg-white/[0.06]
-                                       after:-translate-x-full after:transition-transform after:duration-300
-                                       hover:after:translate-x-0"
-                            >
-                                <i class="fas fa-paper-plane text-xs"></i>
-                                <span>Ajukan Peminjaman</span>
-                            </button>
+        {{-- Content (Hidden by default) --}}
+        <div id="items-container" style="display: none;" class="px-4 py-3 border-t border-rule space-y-3">
+            {{-- Scan Button --}}
+            <button
+                type="button"
+                id="qr_scanner_btn_multi"
+                class="w-full px-4 py-3 bg-cream border border-rule font-sans text-[0.75rem] font-semibold tracking-[0.1em] uppercase text-ink
+                    hover:border-espresso hover:bg-espresso/5 transition-all duration-200
+                    flex items-center justify-center gap-2"
+            >
+                <i class="fas fa-camera text-[0.8rem]"></i>
+                <span>Buka Kamera - Scan QR Lagi</span>
+            </button>
 
-                        </form>
+            {{-- Items List --}}
+            <div id="scanned_items" class="space-y-2">
+                <p class="font-sans text-[0.65rem] text-label text-center py-3">
+                    Belum ada barang yang di-scan
+                </p>
+            </div>
+
+            {{-- Clear All Button --}}
+            <button
+                type="button"
+                id="clear_all_btn"
+                class="w-full px-3 py-2 border border-espresso text-espresso font-sans text-[0.65rem] font-semibold tracking-[0.1em] uppercase hover:bg-espresso/5 transition-all"
+                style="display: none;"
+                onclick="clearAllScans()"
+            >
+                <i class="fas fa-trash text-xs"></i> Hapus Semua
+            </button>
+        </div>
+    </div>
+
+    {{-- Jam Mulai & Jam Kembali --}}
+    <div class="grid grid-cols-2 gap-4">
+        {{-- Jam Mulai --}}
+        <div>
+            <label class="block font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-2.5">
+                Jam Mulai <span class="text-espresso">*</span>
+            </label>
+            <div class="relative">
+                <select
+                    name="jam_peminjaman" id="jam_peminjaman_select" required
+                    class="w-full appearance-none bg-cream border border-rule px-3 py-2.5 font-sans text-[0.82rem] text-ink outline-none focus:border-ink transition-colors duration-200"
+                >
+                    <option value="">Pilih Jam</option>
+                    <option value="07:00 - 08:30">07:00 - 08:30 (Jam 1)</option>
+                    <option value="08:30 - 10:00">08:30 - 10:00 (Jam 2)</option>
+                    <option value="10:00 - 11:30">10:00 - 11:30 (Jam 3)</option>
+                    <option value="11:30 - 13:00">11:30 - 13:00 (Jam 4)</option>
+                    <option value="13:00 - 14:30">13:00 - 14:30 (Jam 5)</option>
+                    <option value="14:30 - 16:00">14:30 - 16:00 (Jam 6)</option>
+                </select>
+                <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-ghost text-[0.55rem] pointer-events-none"></i>
+            </div>
+            @error('jam_peminjaman')
+                <p class="font-sans text-[0.65rem] text-espresso mt-1.5">{{ $message }}</p>
+            @enderror
+        </div>
+
+        {{-- Jam Kembali --}}
+        <div>
+            <label class="block font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-2.5">
+                Jam Kembali <span class="text-espresso">*</span>
+            </label>
+            <div class="relative">
+                <select
+                    name="jam_kembali" id="jam_kembali_select" required
+                    class="w-full appearance-none bg-cream border border-rule px-3 py-2.5 font-sans text-[0.82rem] text-ink outline-none focus:border-ink transition-colors duration-200"
+                >
+                    <option value="">Pilih Jam Kembali</option>
+                    <option value="07:00 - 08:30">07:00 - 08:30 (Jam 1)</option>
+                    <option value="08:30 - 10:00">08:30 - 10:00 (Jam 2)</option>
+                    <option value="10:00 - 11:30">10:00 - 11:30 (Jam 3)</option>
+                    <option value="11:30 - 13:00">11:30 - 13:00 (Jam 4)</option>
+                    <option value="13:00 - 14:30">13:00 - 14:30 (Jam 5)</option>
+                    <option value="14:30 - 16:00">14:30 - 16:00 (Jam 6)</option>
+                </select>
+                <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-ghost text-[0.55rem] pointer-events-none"></i>
+            </div>
+            @error('jam_kembali')
+                <p class="font-sans text-[0.65rem] text-espresso mt-1.5">{{ $message }}</p>
+            @enderror
+        </div>
+    </div>
+
+    {{-- Tujuan --}}
+    <div>
+        <label class="block font-sans text-[0.55rem] font-semibold tracking-[0.28em] uppercase text-label mb-2.5">
+            Tujuan Peminjaman
+        </label>
+        <textarea
+            name="tujuan_peminjaman" rows="3"
+            placeholder="Untuk keperluan..."
+            class="w-full bg-cream border border-rule px-3 py-2.5 font-sans text-[0.82rem] text-ink outline-none placeholder-ghost/60 focus:border-ink transition-colors duration-200"
+        >{{ old('tujuan_peminjaman') }}</textarea>
+    </div>
+
+    {{-- Hidden Inputs --}}
+    <input type="hidden" name="tanggal_peminjaman" id="tanggal_pinjam_input">
+
+    {{-- Submit Button --}}
+    <button
+        type="submit"
+        class="relative w-full overflow-hidden bg-espresso px-6 py-3.5
+               font-sans text-[0.6rem] font-semibold tracking-[0.25em] uppercase text-paper
+               flex items-center justify-center gap-2
+               transition-colors duration-200 hover:bg-ink active:scale-[0.99]
+               after:content-[''] after:absolute after:inset-0 after:bg-white/[0.06]
+               after:-translate-x-full after:transition-transform after:duration-300
+               hover:after:translate-x-0"
+    >
+        <i class="fas fa-paper-plane text-xs"></i>
+        <span>Ajukan Peminjaman</span>
+    </button>
+
+</form>
+
                     </div>
                 </div>
 
@@ -522,40 +506,47 @@
 
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+
+{{-- ✅ QR SCANNER & FORM LOGIC (MULTI-ITEM) --}}
 <script>
     // ✅ VARIABLES
     let video = null;
     let canvas = null;
     let stream = null;
     let isScanning = false;
-    let scannedUnits = [];
-    let cameraBusy = false; // ✅ NEW: Prevent double tap
+    let cameraBusy = false;
+    let scannedUnits = [];  // ✅ ARRAY untuk multiple barang
 
     // ✅ DOM ELEMENTS
     const qrStatus = document.getElementById('qr_status');
-    const scannedItems = document.getElementById('scanned_items');
-    const itemsCount = document.getElementById('items-count');
     const alatIdInput = document.getElementById('alat_id_input');
     const tanggalPinjamInput = document.getElementById('tanggal_pinjam_input');
+    const scannedItems = document.getElementById('scanned_items');
+    const itemsCount = document.getElementById('items-count');
 
+    // ✅ Set tanggal peminjaman = hari ini (otomatis)
     if (tanggalPinjamInput) {
         tanggalPinjamInput.value = new Date().toISOString().split('T')[0];
     }
 
-    // ✅ EVENT LISTENERS - dengan prevent double click
-    const qrScannerButtons = document.querySelectorAll('#qr_scanner_btn');
-    qrScannerButtons.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (!cameraBusy) {
-                cameraBusy = true;
-                console.log('🎥 Starting camera...');
-                startCamera();
-                setTimeout(() => { cameraBusy = false; }, 500);
-            }
-        });
-    });
+    const qrScannerBtn = document.getElementById('qr_scanner_btn');
+    const qrScannerBtnMulti = document.getElementById('qr_scanner_btn_multi');
+    const clearAllBtn = document.getElementById('clear_all_btn');
 
+    [qrScannerBtn, qrScannerBtnMulti].forEach(btn => {
+        if (btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (!cameraBusy) {
+                    cameraBusy = true;
+                    console.log('🎥 Starting camera...');
+                    startCamera();
+                    setTimeout(() => { cameraBusy = false; }, 500);
+                }
+            });
+        }
+    });
+    // ✅ START CAMERA
     function startCamera() {
         if (isScanning || video) {
             console.warn('⚠️ Camera already running');
@@ -563,11 +554,9 @@
         }
         
         isScanning = true;
-
-        // ✅ CLEANUP dulu kalau ada remnant
         cleanupCamera();
 
-        // Create video
+        // Create video element
         video = document.createElement('video');
         video.id = 'qr_video';
         video.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;object-fit:cover;';
@@ -577,8 +566,8 @@
         const closeBtn = document.createElement('button');
         closeBtn.type = 'button';
         closeBtn.innerHTML = '✕ Tutup Kamera';
-        closeBtn.className = 'qr-close-btn'; // ✅ NEW: CSS class untuk cleanup
-        closeBtn.style.cssText = 'position:fixed;top:20px;right:20px;z-index:10000;padding:10px 20px;background:#1c1917;color:#fffdf9;border:none;cursor:pointer;font-weight:bold;border-radius:5px;';
+        closeBtn.className = 'qr-close-btn';
+        closeBtn.style.cssText = 'position:fixed;top:20px;right:20px;z-index:10000;padding:10px 20px;background:#1c1917;color:#fffdf9;border:none;cursor:pointer;font-weight:bold;border-radius:5px;font-family:Arial,sans-serif;';
         closeBtn.addEventListener('click', (e) => {
             e.preventDefault();
             console.log('❌ Close button clicked');
@@ -592,20 +581,20 @@
         canvas.style.display = 'none';
         document.body.appendChild(canvas);
 
-        // Request camera - dengan timeout
+        // Request camera dengan timeout
         const cameraTimeout = setTimeout(() => {
-            console.error('❌ Camera timeout - taking too long');
+            console.error('❌ Camera timeout');
             if (qrStatus) {
                 qrStatus.textContent = '❌ Kamera timeout. Coba lagi.';
                 qrStatus.style.color = '#b23d3d';
             }
             stopCamera();
-        }, 10000); // 10 detik timeout
+        }, 10000);
 
         navigator.mediaDevices.getUserMedia({
             video: {
                 facingMode: 'environment',
-                width: { ideal: 640 }, // ✅ REDUCED: lebih kecil = lebih cepat
+                width: { ideal: 640 },
                 height: { ideal: 480 }
             }
         })
@@ -640,6 +629,7 @@
         });
     }
 
+    // ✅ SCAN QR CODE
     function scanQrCode() {
         if (!video || !canvas || !isScanning) {
             return;
@@ -670,22 +660,35 @@
         requestAnimationFrame(scanQrCode);
     }
 
+    // ✅ PROCESS QR DATA (MULTI-ITEM)
     function processQrData(qrData) {
         console.log('Processing QR...');
         
-        // ✅ Validate JSON
+        // Validate JSON
         let parsedData;
         try {
             parsedData = typeof qrData === 'string' ? JSON.parse(qrData) : qrData;
+            console.log('✅ Parsed QR Data:', parsedData);
         } catch (e) {
             console.error('❌ Invalid JSON:', e);
             if (qrStatus) {
-                qrStatus.textContent = '❌ QR code tidak valid';
+                qrStatus.textContent = '❌ Format QR tidak valid';
                 qrStatus.style.color = '#b23d3d';
             }
             return;
         }
 
+        // Check if alat_id exists
+        if (!parsedData.alat_id) {
+            console.error('❌ alat_id tidak ada di QR code');
+            if (qrStatus) {
+                qrStatus.textContent = '❌ QR tidak mengandung ID alat';
+                qrStatus.style.color = '#b23d3d';
+            }
+            return;
+        }
+
+        // Send to server API
         fetch('/api/scan-qr', {
             method: 'POST',
             headers: {
@@ -704,21 +707,27 @@
             if (data.success) {
                 const alat = data.alat;
                 
+                // ✅ Check apakah unit sudah di-scan
                 const exists = scannedUnits.some(u => u.alat_unit_id === alat.alat_unit_id);
                 if (exists) {
                     if (qrStatus) {
-                        qrStatus.textContent = '⚠️ Unit sudah di-scan!';
+                        qrStatus.textContent = '⚠️ Unit sudah di-scan sebelumnya!';
                         qrStatus.style.color = '#e8a87c';
                     }
                     return;
                 }
 
+                // ✅ Tambahkan ke array
                 scannedUnits.push(alat);
-                
+                console.log('✅ Barang ditambahkan. Total:', scannedUnits.length);
+
+                // ✅ Set alat_id ke input (ambil dari unit pertama)
                 if (scannedUnits.length === 1) {
                     alatIdInput.value = alat.alat_id;
+                    console.log('✅ alat_id set to:', alat.alat_id);
                 }
 
+                // ✅ Render daftar barang
                 renderScannedItems();
                 
                 if (qrStatus) {
@@ -742,85 +751,58 @@
         });
     }
 
+    // ✅ RENDER SCANNED ITEMS
     function renderScannedItems() {
-        if (itemsCount) {
-            itemsCount.textContent = `${scannedUnits.length} item${scannedUnits.length !== 1 ? 's' : ''}`;
+        if (!scannedItems || !itemsCount) return;
+
+        // Update counter
+        itemsCount.textContent = `${scannedUnits.length} item${scannedUnits.length !== 1 ? 's' : ''}`;
+
+        if (scannedUnits.length === 0) {
+            scannedItems.innerHTML = '<p class="font-sans text-[0.65rem] text-label text-center py-3">Belum ada barang yang di-scan</p>';
+            return;
         }
 
-        if (scannedItems) {
-            if (scannedUnits.length === 0) {
-                scannedItems.innerHTML = '<p class="font-sans text-[0.65rem] text-label text-center py-3">Belum ada barang yang di-scan</p>';
-                return;
-            }
-
-            scannedItems.innerHTML = scannedUnits.map((unit, i) => `
-                <div class="bg-sand px-3 py-2.5 rounded flex items-center justify-between">
-                    <div class="flex-1 min-w-0">
-                        <p class="font-sans text-[0.68rem] font-semibold text-ink truncate">${unit.nama_alat}</p>
-                        <p class="font-sans text-[0.6rem] text-label">Unit ${unit.unit_number}</p>
-                    </div>
-                    <button type="button" onclick="removeItem(${i})" class="ml-2 px-2 py-1 bg-espresso text-paper text-[0.5rem] font-semibold rounded hover:bg-ink">
-                        <i class="fas fa-trash text-xs"></i>
-                    </button>
+        // Render items
+        scannedItems.innerHTML = scannedUnits.map((unit, i) => `
+            <div class="bg-sand px-3 py-2.5 rounded flex items-center justify-between">
+                <div class="flex-1 min-w-0">
+                    <p class="font-sans text-[0.68rem] font-semibold text-ink truncate">${unit.nama_alat}</p>
+                    <p class="font-sans text-[0.6rem] text-label">Unit ${unit.unit_number}</p>
                 </div>
-            `).join('');
-        }
+                <button type="button" onclick="removeItem(${i})" class="ml-2 px-2 py-1 bg-espresso text-paper text-[0.5rem] font-semibold rounded hover:bg-ink transition-colors">
+                    <i class="fas fa-trash text-xs"></i>
+                </button>
+            </div>
+        `).join('');
     }
 
+    // ✅ REMOVE ITEM
     function removeItem(index) {
         scannedUnits.splice(index, 1);
+        console.log('🗑️ Item removed. Total:', scannedUnits.length);
+
         if (scannedUnits.length === 0) {
             alatIdInput.value = '';
         } else {
             alatIdInput.value = scannedUnits[0].alat_id;
         }
+
         renderScannedItems();
     }
 
-    // ✅ CLEANUP function - hapus semua remnant
-    function cleanupCamera() {
-        console.log('🧹 Cleaning up camera elements...');
-        
-        // Stop stream
-        if (stream) {
-            stream.getTracks().forEach(track => {
-                track.stop();
-                console.log('  - Stopped track:', track.kind);
-            });
-            stream = null;
+    // ✅ CLEAR ALL SCANS
+    function clearAllScans() {
+        scannedUnits = [];
+        alatIdInput.value = '';
+        renderScannedItems();
+        if (qrStatus) {
+            qrStatus.textContent = '';
         }
-        
-        // Remove video
-        const existingVideo = document.getElementById('qr_video');
-        if (existingVideo) {
-            existingVideo.remove();
-            console.log('  - Removed video element');
-        }
-        
-        // Remove canvas
-        const existingCanvas = document.getElementById('qr_canvas');
-        if (existingCanvas) {
-            existingCanvas.remove();
-            console.log('  - Removed canvas element');
-        }
-        
-        // Remove close buttons (bisa lebih dari 1!)
-        const closeBtns = document.querySelectorAll('.qr-close-btn');
-        closeBtns.forEach(btn => {
-            btn.remove();
-            console.log('  - Removed close button');
-        });
-
-        video = null;
-        canvas = null;
+        console.log('🔄 All scans cleared');
     }
 
-    function stopCamera() {
-        console.log('⏹️ Stopping camera...');
-        isScanning = false;
-        cleanupCamera();
-    }
-
+    // ✅ TOGGLE ITEMS LIST
     function toggleItemsList() {
         const container = document.getElementById('items-container');
         const icon = document.getElementById('list-icon');
@@ -831,27 +813,61 @@
         if (icon) icon.style.transform = isHidden ? 'rotate(90deg)' : 'rotate(0deg)';
     }
 
+    // ✅ FORMAT CURRENCY
     function formatCurrency(value) {
-        return new Intl.NumberFormat('id-ID').format(value);
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(value);
     }
 
-    
+    // ✅ CLEANUP CAMERA
+    function cleanupCamera() {
+        console.log('🧹 Cleaning up camera...');
+        
+        if (stream) {
+            stream.getTracks().forEach(track => {
+                track.stop();
+                console.log('  - Stopped track:', track.kind);
+            });
+            stream = null;
+        }
+        
+        const existingVideo = document.getElementById('qr_video');
+        if (existingVideo) {
+            existingVideo.remove();
+            console.log('  - Removed video');
+        }
+        
+        const existingCanvas = document.getElementById('qr_canvas');
+        if (existingCanvas) {
+            existingCanvas.remove();
+            console.log('  - Removed canvas');
+        }
+        
+        const closeBtns = document.querySelectorAll('.qr-close-btn');
+        closeBtns.forEach(btn => {
+            btn.remove();
+            console.log('  - Removed close button');
+        });
 
-    // Cleanup on page unload
+        video = null;
+        canvas = null;
+    }
+
+    // ✅ STOP CAMERA
+    function stopCamera() {
+        console.log('⏹️ Stopping camera...');
+        isScanning = false;
+        cleanupCamera();
+    }
+
+    // ✅ CLEANUP ON PAGE UNLOAD
     window.addEventListener('beforeunload', stopCamera);
 
-    console.log('✅ Script initialized');
-
-    
-
-</script>
-
-
-{{-- ✅ QR SCANNER SCRIPT --}}
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-<script>
-    // QR SCANNER CODE (panjang)
-    console.log('✅ Script initialized');
+    console.log('✅ QR Scanner Script initialized (Multi-Item Mode)');
 </script>
 
 {{-- ✅ PWA - SERVICE WORKER REGISTRATION --}}
@@ -860,7 +876,7 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
             .then(reg => {
-                console.log('✅ Service Worker registered:', reg);
+                console.log('✅ Service Worker registered');
                 setInterval(() => {
                     reg.update();
                 }, 60000);
@@ -872,53 +888,52 @@ if ('serviceWorker' in navigator) {
 // ✅ INSTALL PROMPT HANDLER
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
-  console.log('✅ beforeinstallprompt event fired');
-  e.preventDefault();
-  deferredPrompt = e;
-  showInstallPrompt();
+    console.log('✅ beforeinstallprompt fired');
+    e.preventDefault();
+    deferredPrompt = e;
+    showInstallPrompt();
 });
 
 function showInstallPrompt() {
-  if (!deferredPrompt) return;
-  
-  let installBtn = document.getElementById('installButton');
-  if (!installBtn) {
-    installBtn = document.createElement('button');
-    installBtn.id = 'installButton';
+    if (!deferredPrompt) return;
     
-    // ✅ STYLING DIPERBAIKI
-    installBtn.innerHTML = '<i class="fas fa-download text-sm mr-2"></i><span>Install App</span>';
-    installBtn.className = 'relative overflow-hidden bg-espresso hover:bg-ink px-6 py-2.5 font-sans text-[0.7rem] font-semibold tracking-[0.1em] uppercase text-paper transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95';
-    installBtn.style.cssText = `
-      display: none;
-      position: relative;
-      margin-left: auto;
-      margin-right: 16px;
-    `;
-    
-    const navbar = document.querySelector('nav');
-    if (navbar) {
-      navbar.appendChild(installBtn);
+    let installBtn = document.getElementById('installButton');
+    if (!installBtn) {
+        installBtn = document.createElement('button');
+        installBtn.id = 'installButton';
+        installBtn.type = 'button';
+        installBtn.innerHTML = '<i class="fas fa-download text-sm mr-2"></i><span>Install App</span>';
+        installBtn.className = 'relative overflow-hidden bg-espresso hover:bg-ink px-6 py-2.5 font-sans text-[0.7rem] font-semibold tracking-[0.1em] uppercase text-paper transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg';
+        installBtn.style.cssText = `
+            display: none;
+            position: relative;
+            margin-left: auto;
+            margin-right: 16px;
+        `;
+        
+        const navbar = document.querySelector('nav');
+        if (navbar) {
+            navbar.appendChild(installBtn);
+        }
     }
-  }
-  
-  if (deferredPrompt && installBtn) {
-    installBtn.style.display = 'inline-flex';
     
-    installBtn.addEventListener('click', async () => {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      console.log(`User response: ${outcome}`);
-      deferredPrompt = null;
-      installBtn.style.display = 'none';
-    });
-  }
+    if (deferredPrompt && installBtn) {
+        installBtn.style.display = 'inline-flex';
+        
+        installBtn.addEventListener('click', async () => {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User response: ${outcome}`);
+            deferredPrompt = null;
+            installBtn.style.display = 'none';
+        });
+    }
 }
 
 window.addEventListener('appinstalled', () => {
-  console.log('✅ PWA was installed!');
-  const installBtn = document.getElementById('installButton');
-  if (installBtn) installBtn.style.display = 'none';
+    console.log('✅ PWA installed!');
+    const installBtn = document.getElementById('installButton');
+    if (installBtn) installBtn.style.display = 'none';
 });
 </script>
 
