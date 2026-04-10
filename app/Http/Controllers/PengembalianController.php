@@ -257,11 +257,15 @@ public function getFromQr(Request $request)
 
     $alat = $alatUnit->alat;
 
-    // ✅ Cari peminjaman untuk unit SPESIFIK ini
-    $peminjaman = Peminjaman::where('alat_unit_id', $alatUnit->id)
-        ->where('status', 'disetujui')
-        ->whereDoesntHave('pengembalian')
-        ->first();
+    // ✅ UPDATED: Cari peminjaman yang cocok
+    // Bisa dari alat_unit_id (admin) atau alat_id (guest)
+    $peminjaman = Peminjaman::where(function ($query) use ($alatUnit, $alat) {
+        $query->where('alat_unit_id', $alatUnit->id)
+              ->orWhere('alat_id', $alat->alat_id);
+    })
+    ->where('status', 'disetujui')
+    ->whereDoesntHave('pengembalian')
+    ->first();
 
     if (!$peminjaman) {
         return response()->json([
@@ -274,9 +278,9 @@ public function getFromQr(Request $request)
         'success' => true,
         'alat' => [
             'peminjaman_id' => $peminjaman->peminjaman_id,
-            'alat_unit_id' => $alatUnit->id, // ✅ NEW
+            'alat_unit_id' => $alatUnit->id,
             'nama_alat' => $alat->nama_alat,
-            'unit_number' => $alatUnit->unit_number, // ✅ NEW
+            'unit_number' => $alatUnit->unit_number,
             'nama_peminjam' => $peminjaman->getNamaPeminjam(),
             'jumlah' => $peminjaman->jumlah,
             'harga_alat' => (float) $alat->harga_alat,
