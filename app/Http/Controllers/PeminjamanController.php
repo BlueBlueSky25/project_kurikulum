@@ -19,7 +19,6 @@ class PeminjamanController extends Controller
 
  public function guestStore(Request $request)
 {
-    // ✅ Updated validation dengan jam_kembali
     $validated = $request->validate([
         'nama_peminjam_guest' => 'required|string|max:255',
         'alat_id' => 'required|exists:alat,alat_id',
@@ -41,8 +40,10 @@ class PeminjamanController extends Controller
         return back()->withErrors(['jumlah' => 'Stok tidak cukup. Maksimal: ' . $alat->stok_tersedia . ' unit']);
     }
 
-    // ✅ AUTO ACCEPT - langsung disetujui saat submit
-    DB::transaction(function () use ($validated, $alat) {
+    // ✅ FIX: Variable peminjaman harus accessible di luar closure
+    $peminjaman = null;
+
+    DB::transaction(function () use ($validated, $alat, &$peminjaman) {
         $tanggalHariIni = now()->toDateString();
 
         $peminjaman = Peminjaman::create([
@@ -56,8 +57,9 @@ class PeminjamanController extends Controller
             'kelas' => $validated['kelas'],
             'mata_pelajaran' => $validated['mata_pelajaran'],  
             'jam_peminjaman' => $validated['jam_peminjaman'],
-            'status' => 'disetujui',  // ✅ AUTO ACCEPT - bukan 'menunggu'
-            'disetujui_oleh' => 1,    // ✅ System auto-approve (user_id 1 = system/admin)
+            'jam_kembali' => $validated['jam_kembali'],  // ✅ ADD ini juga
+            'status' => 'disetujui',
+            'disetujui_oleh' => 1,  // System
             'tanggal_disetujui' => now(),
         ]);
 
@@ -66,7 +68,7 @@ class PeminjamanController extends Controller
 
         // ✅ LOG AKTIVITAS
         LogAktivitas::create([
-            'user_id' => 1,  // System
+            'user_id' => 1,
             'aktivitas' => 'Guest auto-approve peminjaman - ' . $alat->nama_alat,
             'modul' => 'Peminjaman',
             'timestamp' => now(),
