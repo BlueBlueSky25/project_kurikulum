@@ -2,7 +2,6 @@ const CACHE_NAME = 'peminjaman-v1';
 const urlsToCache = [
   '/',
   '/manifest.json',
-  '/css/app.css',
 ];
 
 // ✅ INSTALL - cache files
@@ -11,8 +10,10 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       console.log('✅ Cache opened');
+      // Hanya cache manifest, assets akan di-cache saat diakses
       return cache.addAll(urlsToCache).catch(err => {
-        console.log('⚠️ Some files not cached:', err);
+        console.warn('⚠️ Some files not cached:', err);
+        return Promise.resolve(); // Continue meski ada error
       });
     })
   );
@@ -76,43 +77,3 @@ self.addEventListener('fetch', event => {
       })
   );
 });
-
-// ✅ BACKGROUND SYNC - untuk kirim data saat online
-self.addEventListener('sync', event => {
-  if (event.tag === 'sync-peminjaman') {
-    console.log('🔄 Background sync triggered');
-    event.waitUntil(syncPeminjaman());
-  }
-});
-
-async function syncPeminjaman() {
-  try {
-    const db = await openDB('peminjaman-db');
-    const unsynced = await db.getAll('peminjaman');
-
-    for (let item of unsynced) {
-      if (item.synced) continue;
-
-      try {
-        const response = await fetch('/api/peminjaman/guest/store', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': item.csrf_token
-          },
-          body: JSON.stringify(item)
-        });
-
-        if (response.ok) {
-          item.synced = true;
-          await db.put('peminjaman', item);
-          console.log('✅ Synced:', item.id);
-        }
-      } catch (e) {
-        console.error('❌ Sync failed for item:', item.id, e);
-      }
-    }
-  } catch (e) {
-    console.error('❌ Sync error:', e);
-  }
-}
