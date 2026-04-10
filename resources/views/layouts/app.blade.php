@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    {{-- ✅ PWA META TAGS --}}
+    {{-- PWA META TAGS --}}
     <meta name="theme-color" content="#1c1917">
     <meta name="description" content="Aplikasi Peminjaman Alat Sekolah - Akses Offline Tersedia">
     <meta name="application-name" content="Peminjaman Alat">
@@ -18,10 +18,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Peminjaman Alat">
     
-   {{-- ✅ MANIFEST --}}
+   {{-- MANIFEST --}}
 <link rel="manifest" href="{{ url('/app-manifest.json') }}">
 
-{{-- ✅ APP ICONS --}}
+{{-- APP ICONS --}}
 <link rel="icon" type="image/png" sizes="192x192" href="{{ url('/icons/icon-192.png') }}">
 <link rel="icon" type="image/png" sizes="512x512" href="{{ url('/icons/icon-512.png') }}">
 <link rel="apple-touch-icon" href="{{ url('/icons/icon-192.png') }}">
