@@ -18,14 +18,14 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Peminjaman Alat">
     
-    {{-- ✅ MANIFEST --}}
-    <link rel="manifest" href="/manifest.json">
+    {{-- ✅ MANIFEST (FIXED) --}}
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
     
-    {{-- ✅ APP ICONS --}}
-    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png">
-    <link rel="apple-touch-icon" href="/icons/icon-192.png">
-    <link rel="shortcut icon" href="/favicon.ico">
+    {{-- ✅ APP ICONS (FIXED) --}}
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('icons/icon-192.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ asset('icons/icon-512.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('icons/icon-192.png') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
