@@ -525,14 +525,15 @@
 
 
 
-        <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
-    // ✅ VARIABLES (hanya 1 kali deklarasi)
+    // ✅ VARIABLES
     let video = null;
     let canvas = null;
     let stream = null;
     let isScanning = false;
     let scannedUnits = [];
+    let cameraBusy = false; // ✅ NEW: Prevent double tap
 
     // ✅ DOM ELEMENTS
     const qrStatus = document.getElementById('qr_status');
@@ -540,34 +541,37 @@
     const itemsCount = document.getElementById('items-count');
     const alatIdInput = document.getElementById('alat_id_input');
     const tanggalPinjamInput = document.getElementById('tanggal_pinjam_input');
-    const alatTerpilih = document.getElementById('alat_terpilih');
 
-    // Set tanggal
     if (tanggalPinjamInput) {
         tanggalPinjamInput.value = new Date().toISOString().split('T')[0];
     }
 
-    // ✅ EVENT LISTENERS untuk KEDUA button
+    // ✅ EVENT LISTENERS - dengan prevent double click
     const qrScannerButtons = document.querySelectorAll('#qr_scanner_btn');
     qrScannerButtons.forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('Button clicked, starting camera...');
-            startCamera();
+            if (!cameraBusy) {
+                cameraBusy = true;
+                console.log('🎥 Starting camera...');
+                startCamera();
+                setTimeout(() => { cameraBusy = false; }, 500);
+            }
         });
     });
 
-    // ✅ FUNGSI - HANYA 1 KALI
     function startCamera() {
         if (isScanning || video) {
-            console.warn('Camera already running');
+            console.warn('⚠️ Camera already running');
             return;
         }
         
-        console.log('Starting camera...');
         isScanning = true;
 
-        // Create video element
+        // ✅ CLEANUP dulu kalau ada remnant
+        cleanupCamera();
+
+        // Create video
         video = document.createElement('video');
         video.id = 'qr_video';
         video.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;object-fit:cover;';
@@ -577,9 +581,11 @@
         const closeBtn = document.createElement('button');
         closeBtn.type = 'button';
         closeBtn.innerHTML = '✕ Tutup Kamera';
-        closeBtn.style.cssText = 'position:fixed;top:20px;right:20px;z-index:10000;padding:10px 20px;background:#1c1917;color:#fffdf9;border:none;cursor:pointer;font-weight:bold;border-radius:5px;font-size:14px;';
+        closeBtn.className = 'qr-close-btn'; // ✅ NEW: CSS class untuk cleanup
+        closeBtn.style.cssText = 'position:fixed;top:20px;right:20px;z-index:10000;padding:10px 20px;background:#1c1917;color:#fffdf9;border:none;cursor:pointer;font-weight:bold;border-radius:5px;';
         closeBtn.addEventListener('click', (e) => {
             e.preventDefault();
+            console.log('❌ Close button clicked');
             stopCamera();
         });
         document.body.appendChild(closeBtn);
@@ -590,16 +596,26 @@
         canvas.style.display = 'none';
         document.body.appendChild(canvas);
 
-        // Request camera
+        // Request camera - dengan timeout
+        const cameraTimeout = setTimeout(() => {
+            console.error('❌ Camera timeout - taking too long');
+            if (qrStatus) {
+                qrStatus.textContent = '❌ Kamera timeout. Coba lagi.';
+                qrStatus.style.color = '#b23d3d';
+            }
+            stopCamera();
+        }, 10000); // 10 detik timeout
+
         navigator.mediaDevices.getUserMedia({
             video: {
                 facingMode: 'environment',
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
+                width: { ideal: 640 }, // ✅ REDUCED: lebih kecil = lebih cepat
+                height: { ideal: 480 }
             }
         })
         .then(s => {
-            console.log('✓ Camera stream obtained');
+            clearTimeout(cameraTimeout);
+            console.log('✅ Camera stream obtained');
             stream = s;
             video.srcObject = stream;
             video.setAttribute('autoplay', 'true');
@@ -607,7 +623,7 @@
             
             video.onloadedmetadata = () => {
                 video.play();
-                console.log('✓ Video playing');
+                console.log('✅ Video playing');
                 
                 if (qrStatus) {
                     qrStatus.textContent = '📹 Arahkan kamera ke QR code...';
@@ -618,37 +634,40 @@
             };
         })
         .catch(err => {
+            clearTimeout(cameraTimeout);
             console.error('❌ Camera error:', err);
             if (qrStatus) {
                 qrStatus.textContent = '❌ Error: ' + err.message;
                 qrStatus.style.color = '#b23d3d';
             }
-            isScanning = false;
-            closeBtn.remove();
+            stopCamera();
         });
     }
 
     function scanQrCode() {
         if (!video || !canvas || !isScanning) {
-            console.log('Scan stopped');
             return;
         }
 
         const ctx = canvas.getContext('2d');
         
-        if (video.videoWidth && video.videoHeight) {
+        if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth && video.videoHeight) {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            try {
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
 
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height);
-
-            if (code) {
-                console.log('✓ QR Detected:', code.data);
-                stopCamera();
-                processQrData(code.data);
-                return;
+                if (code) {
+                    console.log('✅ QR Detected:', code.data);
+                    stopCamera();
+                    processQrData(code.data);
+                    return;
+                }
+            } catch (e) {
+                console.error('❌ Canvas error:', e);
             }
         }
 
@@ -656,8 +675,21 @@
     }
 
     function processQrData(qrData) {
-        console.log('Processing QR Data:', qrData);
+        console.log('Processing QR...');
         
+        // ✅ Validate JSON
+        let parsedData;
+        try {
+            parsedData = typeof qrData === 'string' ? JSON.parse(qrData) : qrData;
+        } catch (e) {
+            console.error('❌ Invalid JSON:', e);
+            if (qrStatus) {
+                qrStatus.textContent = '❌ QR code tidak valid';
+                qrStatus.style.color = '#b23d3d';
+            }
+            return;
+        }
+
         fetch('/api/scan-qr', {
             method: 'POST',
             headers: {
@@ -666,14 +698,16 @@
             },
             body: JSON.stringify({ qr_data: qrData })
         })
-        .then(r => r.json())
+        .then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+        })
         .then(data => {
-            console.log('✓ API Response:', data);
+            console.log('✅ API Response:', data);
             
             if (data.success) {
                 const alat = data.alat;
                 
-                // Check duplicate
                 const exists = scannedUnits.some(u => u.alat_unit_id === alat.alat_unit_id);
                 if (exists) {
                     if (qrStatus) {
@@ -683,7 +717,6 @@
                     return;
                 }
 
-                // Add to list
                 scannedUnits.push(alat);
                 
                 if (scannedUnits.length === 1) {
@@ -693,19 +726,19 @@
                 renderScannedItems();
                 
                 if (qrStatus) {
-                    qrStatus.textContent = `✓ ${alat.nama_alat} Unit ${alat.unit_number} ditambahkan!`;
+                    qrStatus.textContent = `✅ ${alat.nama_alat} Unit ${alat.unit_number} ditambahkan!`;
                     qrStatus.style.color = '#1c1917';
                 }
 
             } else {
                 if (qrStatus) {
-                    qrStatus.textContent = '❌ ' + data.message;
+                    qrStatus.textContent = '❌ ' + (data.message || 'Alat tidak ditemukan');
                     qrStatus.style.color = '#b23d3d';
                 }
             }
         })
         .catch(error => {
-            console.error('❌ Error:', error);
+            console.error('❌ Fetch error:', error);
             if (qrStatus) {
                 qrStatus.textContent = '❌ Error: ' + error.message;
                 qrStatus.style.color = '#b23d3d';
@@ -748,24 +781,48 @@
         renderScannedItems();
     }
 
-    function stopCamera() {
-        console.log('Stopping camera...');
-        isScanning = false;
+    // ✅ CLEANUP function - hapus semua remnant
+    function cleanupCamera() {
+        console.log('🧹 Cleaning up camera elements...');
+        
+        // Stop stream
         if (stream) {
-            stream.getTracks().forEach(track => track.stop());
+            stream.getTracks().forEach(track => {
+                track.stop();
+                console.log('  - Stopped track:', track.kind);
+            });
             stream = null;
         }
-        if (video) {
-            video.remove();
-            video = null;
-        }
-        if (canvas) {
-            canvas.remove();
-            canvas = null;
+        
+        // Remove video
+        const existingVideo = document.getElementById('qr_video');
+        if (existingVideo) {
+            existingVideo.remove();
+            console.log('  - Removed video element');
         }
         
-        const closeBtn = document.querySelector('button[style*="position:fixed"]');
-        if (closeBtn) closeBtn.remove();
+        // Remove canvas
+        const existingCanvas = document.getElementById('qr_canvas');
+        if (existingCanvas) {
+            existingCanvas.remove();
+            console.log('  - Removed canvas element');
+        }
+        
+        // Remove close buttons (bisa lebih dari 1!)
+        const closeBtns = document.querySelectorAll('.qr-close-btn');
+        closeBtns.forEach(btn => {
+            btn.remove();
+            console.log('  - Removed close button');
+        });
+
+        video = null;
+        canvas = null;
+    }
+
+    function stopCamera() {
+        console.log('⏹️ Stopping camera...');
+        isScanning = false;
+        cleanupCamera();
     }
 
     function toggleItemsList() {
@@ -782,12 +839,10 @@
         return new Intl.NumberFormat('id-ID').format(value);
     }
 
-    // Cleanup
+    // Cleanup on page unload
     window.addEventListener('beforeunload', stopCamera);
 
-    // Log untuk debugging
-    console.log('✓ Script loaded');
-    console.log('QR Scanner buttons found:', document.querySelectorAll('#qr_scanner_btn').length);
+    console.log('✅ Script initialized');
 </script>
 
 </body>
