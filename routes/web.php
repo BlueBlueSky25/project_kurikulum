@@ -149,37 +149,34 @@ Route::middleware('auth')->group(function () {
 // PENGEMBALIAN ROUTES
 // ============================================================
 Route::middleware('auth')->group(function () {
-    // View pengembalian - Semua role
+
+    // ── GET statis ──
     Route::get('/pengembalian', [PengembalianController::class, 'index'])
         ->name('pengembalian.index')
         ->middleware('role:admin,petugas,peminjam');
-    
-    // ✅ NEW: Quick Return Form - Admin & Petugas only
+
     Route::get('/pengembalian/quick', [PengembalianController::class, 'quickReturnForm'])
         ->name('pengembalian.quick')
         ->middleware('role:admin,petugas');
-    
-    // Create/Store pengembalian - Admin, Petugas & Peminjam
+
+    // ── POST statis ──
     Route::post('/pengembalian', [PengembalianController::class, 'store'])
         ->name('pengembalian.store')
         ->middleware('role:admin,petugas,peminjam');
-    
-    // ✅ NEW: Quick Process API - Admin & Petugas only
+
     Route::post('/pengembalian/quick-process', [PengembalianController::class, 'quickProcess'])
         ->name('pengembalian.quick-process')
         ->middleware('role:admin,petugas');
-    
-    // ✅ NEW: Get from QR API - Admin & Petugas only
+
     Route::post('/pengembalian/api/get-from-qr', [PengembalianController::class, 'getFromQr'])
         ->name('pengembalian.get-from-qr')
         ->middleware('role:admin,petugas');
-    
-    // Bayar Denda - Admin only
+
     Route::post('/pengembalian/bayar', [PengembalianController::class, 'bayar'])
         ->name('pengembalian.bayar')
         ->middleware('role:admin');
-    
-    // Delete pengembalian - Admin only
+
+    // ── Route dengan parameter — SELALU PALING BAWAH ──
     Route::delete('/pengembalian/{pengembalian}', [PengembalianController::class, 'destroy'])
         ->name('pengembalian.destroy')
         ->middleware('role:admin');

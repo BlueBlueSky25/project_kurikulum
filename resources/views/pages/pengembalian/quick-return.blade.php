@@ -362,62 +362,64 @@
     }
 
     // ✅ PROCESS QR DATA
-    function processQrDataReturn(qrData) {
-        console.log('Processing QR...');
-        
-        // Validate JSON
-        let parsedData;
-        try {
-            parsedData = typeof qrData === 'string' ? JSON.parse(qrData) : qrData;
-            console.log('✅ Parsed QR Data:', parsedData);
-        } catch (e) {
-            console.error('❌ Invalid JSON:', e);
-            document.getElementById('qr_status_return').textContent = '❌ Format QR tidak valid';
-            document.getElementById('qr_status_return').style.color = '#b23d3d';
-            return;
-        }
-
-        // Send to server API
-        fetch('/pengembalian/api/get-from-qr', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify({ qr_data: qrData })
-        })
-        .then(r => {
-            if (!r.ok) throw new Error(`HTTP ${r.status}`);
-            return r.json();
-        })
-        .then(data => {
-            console.log('✅ API Response:', data);
-            
-            if (data.success) {
-                const alat = data.alat;
-                
-                // Set current scanned alat
-                currentScannedAlat = alat;
-                
-                // Show form
-                document.getElementById('formKondisi').style.display = 'block';
-                document.getElementById('return_nama_alat').textContent = alat.nama_alat + ' (Unit ' + alat.unit_number + ')';
-                document.getElementById('return_nama_peminjam').textContent = 'Peminjam: ' + alat.nama_peminjam;
-                document.getElementById('return_harga').textContent = 'Harga: Rp ' + formatCurrency(alat.harga_alat);
-                
-                document.getElementById('qr_status_return').textContent = '✅ Barang terdeteksi! Pilih kondisi barang.';
-                document.getElementById('qr_status_return').style.color = '#1c1917';
-            } else {
-                document.getElementById('qr_status_return').textContent = '❌ ' + (data.message || 'Alat tidak ditemukan');
-                document.getElementById('qr_status_return').style.color = '#b23d3d';
-            }
-        })
-        .catch(error => {
-            console.error('❌ Fetch error:', error);
-            document.getElementById('qr_status_return').textContent = '❌ Error: ' + error.message;
-            document.getElementById('qr_status_return').style.color = '#b23d3d';
-        });
+function processQrDataReturn(qrData) {
+    console.log('Processing QR...');
+    
+    // Validate JSON
+    let parsedData;
+    try {
+        parsedData = typeof qrData === 'string' ? JSON.parse(qrData) : qrData;
+        console.log('✅ Parsed QR Data:', parsedData);
+        alert('✅ QR terbaca:\n' + JSON.stringify(parsedData, null, 2)); // ← DEBUG
+    } catch (e) {
+        console.error('❌ Invalid JSON:', e);
+        alert('❌ JSON Error: ' + e.message); // ← DEBUG
+        document.getElementById('qr_status_return').textContent = '❌ Format QR tidak valid';
+        document.getElementById('qr_status_return').style.color = '#b23d3d';
+        return;
     }
+
+    // Send to server API
+    fetch('/pengembalian/api/get-from-qr', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ qr_data: qrData })
+    })
+    .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+    })
+    .then(data => {
+        alert('📡 Server response:\n' + JSON.stringify(data, null, 2)); // ← DEBUG
+        console.log('✅ API Response:', data);
+        
+        if (data.success) {
+            const alat = data.alat;
+            
+            currentScannedAlat = alat;
+            
+            document.getElementById('formKondisi').style.display = 'block';
+            document.getElementById('return_nama_alat').textContent = alat.nama_alat + ' (Unit ' + alat.unit_number + ')';
+            document.getElementById('return_nama_peminjam').textContent = 'Peminjam: ' + alat.nama_peminjam;
+            document.getElementById('return_harga').textContent = 'Harga: Rp ' + formatCurrency(alat.harga_alat);
+            
+            document.getElementById('qr_status_return').textContent = '✅ Barang terdeteksi! Pilih kondisi barang.';
+            document.getElementById('qr_status_return').style.color = '#1c1917';
+        } else {
+            document.getElementById('qr_status_return').textContent = '❌ ' + (data.message || 'Alat tidak ditemukan');
+            document.getElementById('qr_status_return').style.color = '#b23d3d';
+        }
+    })
+    .catch(error => {
+        alert('❌ Fetch Error: ' + error.message); // ← DEBUG
+        console.error('❌ Fetch error:', error);
+        document.getElementById('qr_status_return').textContent = '❌ Error: ' + error.message;
+        document.getElementById('qr_status_return').style.color = '#b23d3d';
+    });
+}
 
     // ✅ CLEANUP CAMERA
     function cleanupCamera() {
