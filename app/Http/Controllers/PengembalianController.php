@@ -303,6 +303,21 @@ public function getFromQr(Request $request)
 
         $alat = $alatUnit->alat;
 
+
+        // code Cari peminjaman aktif lama
+        // $peminjaman = Peminjaman::where('alat_id', $alat->alat_id)
+        //     ->where('status', 'disetujui')
+        //     ->whereDoesntHave('pengembalian')
+        //     ->latest()
+        //     ->first();
+
+        // if (!$peminjaman) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Tidak ada peminjaman aktif untuk barang ini'
+        //     ], 404);
+        // }
+
         // Cari peminjaman aktif - spesifik per unit dulu, fallback ke guest
         $peminjaman = Peminjaman::where(function($q) use ($alatUnit, $alat) {
                 $q->where('alat_unit_id', $alatUnit->id)
