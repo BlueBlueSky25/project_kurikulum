@@ -6,6 +6,8 @@ use App\Models\Pengembalian;
 use App\Models\PengembalianDetail;
 use App\Models\Peminjaman;
 use App\Models\LogAktivitas;
+use App\Models\AlatUnit;   // ← TAMBAH INI
+use App\Models\Alat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -276,77 +278,70 @@ public function quickProcess(Request $request)
 // ✅ API: Get peminjaman + detail harga dari QR scan
 public function getFromQr(Request $request)
 {
-    $validated = $request->validate([
-        'qr_data' => 'required|json'
-    ]);
+    try {
+        $qrRaw = $request->input('qr_data');
 
-    $data = json_decode($validated['qr_data'], true);
-    
-    // ✅ NEW: Try alat_unit_id first (admin)
-    $alatUnit = null;
-    if (!empty($data['alat_unit_id'])) {
-        $alatUnit = AlatUnit::find($data['alat_unit_id']);
-    }
-    
-    // ✅ NEW: If no unit, try alat_id (guest)
-    if (!$alatUnit && !empty($data['alat_id'])) {
-        $alat = Alat::find($data['alat_id']);
-        if ($alat) {
-            // Untuk guest, buat dummy unit atau cari unit pertama
-            // Untuk sekarang, kita return dengan unit_number generic
-            return response()->json([
-                'success' => true,
-                'alat' => [
-                    'peminjaman_id' => null,
-                    'alat_unit_id' => null,
-                    'nama_alat' => $alat->nama_alat,
-                    'unit_number' => 'Guest',
-                    'nama_peminjam' => 'Guest User',
-                    'jumlah' => 1,
-                    'harga_alat' => (float) $alat->harga_alat,
-                    'persen_default_rusak' => (int) ($alat->persen_denda_rusak ?? 30),
-                    'is_guest' => true,
-                    'alat_id' => $alat->alat_id,
-                ]
-            ]);
+        if (!$qrRaw) {
+            return response()->json(['success' => false, 'message' => 'QR data kosong'], 400);
         }
-    }
 
-    if (!$alatUnit) {
-        return response()->json(['success' => false, 'message' => 'Unit/Alat tidak ditemukan'], 404);
-    }
+        $data = json_decode($qrRaw, true);
 
-    $alat = $alatUnit->alat;
+        if (!$data) {
+            return response()->json(['success' => false, 'message' => 'Format QR tidak valid'], 400);
+        }
 
-    // ✅ Cari peminjaman
-    $peminjaman = Peminjaman::where(function ($query) use ($alatUnit, $alat) {
-        $query->where('alat_unit_id', $alatUnit->id)
-              ->orWhere('alat_id', $alat->alat_id);
-    })
-    ->where('status', 'disetujui')
-    ->whereDoesntHave('pengembalian')
-    ->first();
+        // Cari AlatUnit
+        $alatUnit = null;
+        if (!empty($data['alat_unit_id'])) {
+            $alatUnit = AlatUnit::with('alat')->find($data['alat_unit_id']);
+        }
 
-    if (!$peminjaman) {
+        if (!$alatUnit) {
+            return response()->json(['success' => false, 'message' => 'Unit tidak ditemukan'], 404);
+        }
+
+        $alat = $alatUnit->alat;
+
+        // Cari peminjaman aktif
+        $peminjaman = Peminjaman::where('alat_id', $alat->alat_id)
+            ->where('status', 'disetujui')
+            ->whereDoesntHave('pengembalian')
+            ->latest()
+            ->first();
+
+        if (!$peminjaman) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada peminjaman aktif untuk barang ini'
+            ], 404);
+        }
+
+        $namaPeminjam = $peminjaman->nama_peminjam_guest
+            ?? optional($peminjaman->user)->name
+            ?? 'Guest';
+
+        return response()->json([
+            'success' => true,
+            'alat' => [
+                'peminjaman_id'        => $peminjaman->peminjaman_id,
+                'alat_unit_id'         => $alatUnit->id,
+                'alat_id'              => $alat->alat_id,
+                'nama_alat'            => $alat->nama_alat,
+                'unit_number'          => $alatUnit->unit_number,
+                'nama_peminjam'        => $namaPeminjam,
+                'jumlah'               => $peminjaman->jumlah,
+                'harga_alat'           => (float) $alat->harga_alat,
+                'persen_default_rusak' => (int) ($alat->persen_denda_rusak ?? 30),
+            ]
+        ]);
+
+    } catch (\Exception $e) {
         return response()->json([
             'success' => false,
-            'message' => 'Tidak ada peminjaman pending untuk unit ini'
-        ], 404);
+            'message' => 'Server error: ' . $e->getMessage()
+        ], 500);
     }
-
-    return response()->json([
-        'success' => true,
-        'alat' => [
-            'peminjaman_id' => $peminjaman->peminjaman_id,
-            'alat_unit_id' => $alatUnit->id,
-            'nama_alat' => $alat->nama_alat,
-            'unit_number' => $alatUnit->unit_number,
-            'nama_peminjam' => $peminjaman->getNamaPeminjam(),
-            'jumlah' => $peminjaman->jumlah,
-            'harga_alat' => (float) $alat->harga_alat,
-            'persen_default_rusak' => (int) ($alat->persen_denda_rusak ?? 30),
-        ]
-    ]);
 }
 
 // ✅ NEW: Show quick return form
