@@ -189,7 +189,8 @@ public function quickProcess(Request $request)
 {
     $validated = $request->validate([
         'peminjaman_id' => 'required|exists:peminjaman,peminjaman_id',
-        'alat_unit_id' => 'required|exists:alat_units,id',
+        'alat_unit_id' => 'nullable|exists:alat_units,id',  // ✅ NULLABLE
+        'alat_id' => 'nullable|exists:alat,alat_id',  // ✅ ADD THIS
         'kondisi' => 'required|in:baik,rusak,hilang',
         'persen_denda_custom' => 'nullable|numeric|min:0|max:100',
         'tanggal_kembali' => 'required|date',
@@ -197,8 +198,17 @@ public function quickProcess(Request $request)
     ]);
 
     $peminjaman = Peminjaman::findOrFail($validated['peminjaman_id']);
-    $alatUnit = AlatUnit::findOrFail($validated['alat_unit_id']);
-    $alat = $alatUnit->alat;
+    
+    // ✅ Get alat (from unit atau direct)
+    $alat = null;
+    $alatUnit = null;
+    
+    if (!empty($validated['alat_unit_id'])) {
+        $alatUnit = AlatUnit::findOrFail($validated['alat_unit_id']);
+        $alat = $alatUnit->alat;
+    } else {
+        $alat = Alat::findOrFail($validated['alat_id']);
+    }
 
     // ✅ Calculate denda
     $persenDendaRusak = $alat->persen_denda_rusak ?? 30;
@@ -219,7 +229,7 @@ public function quickProcess(Request $request)
     DB::transaction(function () use ($validated, $peminjaman, $alatUnit, $alat, $kondisi, $dendaDetail, $jumlah) {
         $pengembalian = Pengembalian::create([
             'peminjaman_id' => $validated['peminjaman_id'],
-            'alat_unit_id' => $alatUnit->id,
+            'alat_unit_id' => $alatUnit?->id,  // ✅ NULLABLE
             'tanggal_kembali_aktual' => $validated['tanggal_kembali'],
             'total_denda' => $dendaDetail,
             'status_denda' => $dendaDetail > 0 ? 'belum_lunas' : 'lunas',
@@ -228,7 +238,7 @@ public function quickProcess(Request $request)
 
         PengembalianDetail::create([
             'pengembalian_id' => $pengembalian->pengembalian_id,
-            'alat_unit_id' => $alatUnit->id,
+            'alat_unit_id' => $alatUnit?->id,  // ✅ NULLABLE
             'kondisi_alat' => $kondisi,
             'jumlah' => $jumlah,
             'harga_alat' => $alat->harga_alat,
@@ -238,12 +248,14 @@ public function quickProcess(Request $request)
 
         $peminjaman->update(['status' => 'dikembalikan']);
 
-        // Update unit status
-        if ($kondisi === 'baik') {
-            $alatUnit->update(['status' => 'tersedia']);
-            $alat->increment('stok_tersedia', $jumlah);
-        } else {
-            $alatUnit->update(['status' => $kondisi]);
+        // ✅ Update unit status ONLY if ada unit
+        if ($alatUnit) {
+            if ($kondisi === 'baik') {
+                $alatUnit->update(['status' => 'tersedia']);
+                $alat->increment('stok_tersedia', $jumlah);
+            } else {
+                $alatUnit->update(['status' => $kondisi]);
+            }
         }
     });
 
@@ -254,10 +266,9 @@ public function quickProcess(Request $request)
         'timestamp' => now(),
     ]);
 
-    // ✅ RETURN denda di response
     return response()->json([
         'success' => true,
-        'denda' => $dendaDetail  // ← TAMBAH INI!
+        'denda' => $dendaDetail
     ]);
 }
 
@@ -270,16 +281,44 @@ public function getFromQr(Request $request)
     ]);
 
     $data = json_decode($validated['qr_data'], true);
-    $alatUnit = AlatUnit::find($data['alat_unit_id'] ?? null);
+    
+    // ✅ NEW: Try alat_unit_id first (admin)
+    $alatUnit = null;
+    if (!empty($data['alat_unit_id'])) {
+        $alatUnit = AlatUnit::find($data['alat_unit_id']);
+    }
+    
+    // ✅ NEW: If no unit, try alat_id (guest)
+    if (!$alatUnit && !empty($data['alat_id'])) {
+        $alat = Alat::find($data['alat_id']);
+        if ($alat) {
+            // Untuk guest, buat dummy unit atau cari unit pertama
+            // Untuk sekarang, kita return dengan unit_number generic
+            return response()->json([
+                'success' => true,
+                'alat' => [
+                    'peminjaman_id' => null,
+                    'alat_unit_id' => null,
+                    'nama_alat' => $alat->nama_alat,
+                    'unit_number' => 'Guest',
+                    'nama_peminjam' => 'Guest User',
+                    'jumlah' => 1,
+                    'harga_alat' => (float) $alat->harga_alat,
+                    'persen_default_rusak' => (int) ($alat->persen_denda_rusak ?? 30),
+                    'is_guest' => true,
+                    'alat_id' => $alat->alat_id,
+                ]
+            ]);
+        }
+    }
 
     if (!$alatUnit) {
-        return response()->json(['success' => false, 'message' => 'Unit tidak ditemukan'], 404);
+        return response()->json(['success' => false, 'message' => 'Unit/Alat tidak ditemukan'], 404);
     }
 
     $alat = $alatUnit->alat;
 
-    // ✅ UPDATED: Cari peminjaman yang cocok
-    // Bisa dari alat_unit_id (admin) atau alat_id (guest)
+    // ✅ Cari peminjaman
     $peminjaman = Peminjaman::where(function ($query) use ($alatUnit, $alat) {
         $query->where('alat_unit_id', $alatUnit->id)
               ->orWhere('alat_id', $alat->alat_id);

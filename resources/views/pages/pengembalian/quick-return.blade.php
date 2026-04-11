@@ -453,31 +453,43 @@
     // ✅ CLEANUP ON PAGE UNLOAD
     window.addEventListener('beforeunload', stopReturnCamera);
 
-    // ✅ SUBMIT KONDISI
-    document.getElementById('btn_submit_kondisi').addEventListener('click', function() {
-        if (!currentScannedAlat || !selectedKondisi) return;
+   // ✅ SUBMIT KONDISI
+document.getElementById('btn_submit_kondisi').addEventListener('click', function() {
+    if (!currentScannedAlat || !selectedKondisi) return;
 
-        const persen = selectedKondisi === 'rusak' 
-            ? parseInt(document.getElementById('persen_custom').value) || 30
-            : (selectedKondisi === 'hilang' ? 100 : 0);
+    const persen = selectedKondisi === 'rusak' 
+        ? parseInt(document.getElementById('persen_custom').value) || 30
+        : (selectedKondisi === 'hilang' ? 100 : 0);
 
-        // Submit ke server
-        fetch('/pengembalian/quick-process', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify({
-                peminjaman_id: currentScannedAlat.peminjaman_id,
-                alat_unit_id: currentScannedAlat.alat_unit_id,
-                kondisi: selectedKondisi,
-                persen_denda_custom: persen,
-                tanggal_kembali: new Date().toISOString().split('T')[0],
-            })
-        })
-        .then(r => r.json())
-        .then(data => {
+    // ✅ Kirim baik alat_unit_id maupun alat_id
+    const payload = {
+        peminjaman_id: currentScannedAlat.peminjaman_id,
+        kondisi: selectedKondisi,
+        persen_denda_custom: persen,
+        tanggal_kembali: new Date().toISOString().split('T')[0],
+    };
+
+    // Add alat_unit_id jika ada
+    if (currentScannedAlat.alat_unit_id) {
+        payload.alat_unit_id = currentScannedAlat.alat_unit_id;
+    }
+    
+    // Add alat_id jika guest
+    if (currentScannedAlat.alat_id) {
+        payload.alat_id = currentScannedAlat.alat_id;
+    }
+
+    // Submit ke server
+    fetch('/pengembalian/quick-process', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(data => {
             if (data.success) {
                 // Add to list
                 scannedList.push({
